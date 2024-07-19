@@ -24,6 +24,11 @@ struct SWCLWindow {
   void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
   void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
                              SWCLButtonState state, uint32_t serial);
+  void (*on_keyboard_key_cb)(SWCLWindow *win, uint32_t key,
+                             SWCLButtonState state, uint32_t serial);
+  void (*on_keyboard_mod_key_cb)(SWCLWindow *win, uint32_t mods_depressed,
+                                 uint32_t mods_latched, uint32_t mods_locked,
+                                 uint32_t group, uint32_t serial);
 
   // Wayland
   struct wl_surface *wl_surface;

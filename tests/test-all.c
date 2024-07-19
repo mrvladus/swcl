@@ -1,4 +1,5 @@
 #include "../src/swcl.h"
+#include "tests.h"
 
 void test_draw(SWCLWindow *win) {
   swcl_clear_background(0, 0, 1, 1);
@@ -67,7 +68,21 @@ void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
   }
 }
 
-int main(int argc, char const *argv[]) {
+void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
+                 uint32_t serial) {
+  SWCL_LOG("Key: keycode=%d, state=%d, serial=%d", key, state, serial);
+}
+
+void test_kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
+                     uint32_t mods_latched, uint32_t mods_locked,
+                     uint32_t group, uint32_t serial) {
+  SWCL_LOG("Key: mods_depressed=%d, mods_latched=%d, "
+           "mods_locked=%d,group=%d,serial=%d",
+           mods_depressed, mods_latched, mods_locked, group, serial);
+}
+
+SWCLTestResult test_all() {
+  SWCLTestResult res = {0, 0};
   SWCLApplication *app = swcl_application_new("io.github.mrvladus.Test");
   SWCLWindowConfig cfg = {
       .title = "Test",
@@ -83,9 +98,13 @@ int main(int argc, char const *argv[]) {
       .on_pointer_motion_cb = test_pointer_motion,
       .on_mouse_scroll_cb = test_scroll,
       .on_mouse_button_cb = test_mouse_button_pressed,
+      .on_keyboard_key_cb = test_kb_key,
+      .on_keyboard_mod_key_cb = test_kb_mod_key,
   };
   SWCLWindow *win = swcl_window_new(app, cfg);
 
   swcl_application_run(app);
-  return 0;
+
+  res.passed = 1;
+  return res;
 }

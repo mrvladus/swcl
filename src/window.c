@@ -1,4 +1,3 @@
-#define SWCL_ENABLE_DEBUG_LOGS
 #include "window.h"
 #include "application.h"
 #include "swcl.h"
@@ -117,6 +116,8 @@ SWCLWindow *swcl_window_new(SWCLApplication *app, SWCLWindowConfig cfg) {
   win->on_pointer_motion_cb = cfg.on_pointer_motion_cb;
   win->on_mouse_scroll_cb = cfg.on_mouse_scroll_cb;
   win->on_mouse_button_cb = cfg.on_mouse_button_cb;
+  win->on_keyboard_key_cb = cfg.on_keyboard_key_cb;
+  win->on_keyboard_mod_key_cb = cfg.on_keyboard_mod_key_cb;
 
   SWCL_LOG_DEBUG("Create new window with id: %d, width: %d, height: %d",
                  win->id, win->width, win->height);

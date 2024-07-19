@@ -4,6 +4,8 @@
 #include "xdg-shell-client-protocol.h"
 
 #include <EGL/egl.h>
+#include <wayland-client-core.h>
+#include <wayland-client-protocol.h>
 #include <wayland-client.h>
 
 #include <string.h>
@@ -106,6 +108,53 @@ static struct wl_pointer_listener wl_pointer_listener = {
     .axis = on_wl_pointer_axis,
 };
 
+// -------- wl_keyboard events callbacks -------- //
+
+void on_wl_kb_keymap(void *data, struct wl_keyboard *wl_keyboard,
+                     uint32_t format, int32_t fd, uint32_t size) {}
+
+void on_wl_kb_focus_enter_surface(void *data, struct wl_keyboard *wl_keyboard,
+                                  uint32_t serial, struct wl_surface *surface,
+                                  struct wl_array *key) {}
+
+void on_wl_kb_focus_leave_surface(void *data, struct wl_keyboard *wl_keyboard,
+                                  uint32_t serial, struct wl_surface *surface) {
+}
+
+void on_wl_kb_key(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
+                  uint32_t time, uint32_t key, uint32_t state) {
+  SWCLApplication *app = data;
+  for (int i = 0; i < app->windows.length; i++) {
+    SWCLWindow *win = app->windows.items[i];
+    if (win->id == app->current_window_id && win->on_keyboard_key_cb) {
+      win->on_keyboard_key_cb(win, key, state, serial);
+      return;
+    }
+  }
+}
+
+void on_wl_kb_mod(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
+                  uint32_t mods_depressed, uint32_t mods_latched,
+                  uint32_t mods_locked, uint32_t group) {
+  SWCLApplication *app = data;
+  for (int i = 0; i < app->windows.length; i++) {
+    SWCLWindow *win = app->windows.items[i];
+    if (win->id == app->current_window_id && win->on_keyboard_key_cb) {
+      win->on_keyboard_mod_key_cb(win, mods_depressed, mods_latched,
+                                  mods_locked, group, serial);
+      return;
+    }
+  }
+}
+
+static const struct wl_keyboard_listener wl_keyboard_listener = {
+    .keymap = on_wl_kb_keymap,
+    .enter = on_wl_kb_focus_enter_surface,
+    .leave = on_wl_kb_focus_leave_surface,
+    .key = on_wl_kb_key,
+    .modifiers = on_wl_kb_mod,
+};
+
 // -------- wl_seat events callbacks -------- //
 
 static void on_wl_seat_capabilities(void *data, struct wl_seat *seat,
@@ -115,19 +164,23 @@ static void on_wl_seat_capabilities(void *data, struct wl_seat *seat,
 
   // Get pointer
   app->wl_pointer = wl_seat_get_pointer(app->wl_seat);
-
-  wl_pointer_add_listener(app->wl_pointer, &wl_pointer_listener, app);
   if (!app->wl_pointer)
     SWCL_LOG_DEBUG("No pointer found");
-  else
+  else {
     SWCL_LOG_DEBUG("Got pointer");
+    wl_pointer_add_listener(app->wl_pointer, &wl_pointer_listener, app);
+    wl_display_roundtrip(app->wl_display);
+  }
 
   // Get keyboard
   app->wl_keyboard = wl_seat_get_keyboard(seat);
   if (!app->wl_keyboard)
-    SWCL_LOG_DEBUG("No pointer found");
-  else
+    SWCL_LOG_DEBUG("No keyboard found");
+  else {
     SWCL_LOG_DEBUG("Got keyboard");
+    wl_keyboard_add_listener(app->wl_keyboard, &wl_keyboard_listener, app);
+    wl_display_roundtrip(app->wl_display);
+  }
 }
 
 static struct wl_seat_listener wl_seat_listener = {
