@@ -1,4 +1,3 @@
 include/
 lib/
-tests/test*
-!tests/*.c
+tests/tests

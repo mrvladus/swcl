@@ -214,7 +214,7 @@ SWCLApplication *swcl_application_new(char *app_id) {
     SWCL_LOG_DEBUG("Initialized EGL");
 
   // Bind OpenGL ES API to EGL
-  if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE) {
+  if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
     SWCL_LOG("Failed to bind OpenGL ES to EGL");
     return NULL;
   } else
