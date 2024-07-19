@@ -6,7 +6,7 @@
 #include "xdg-shell-client-protocol.h"
 
 #include <EGL/egl.h>
-#include <GLES3/gl3.h>
+#include <GLES2/gl2.h>
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>

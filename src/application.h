@@ -10,9 +10,7 @@
 struct SWCLApplication {
   char *app_id;
   bool running;
-
   SWCLPoint cur_pos; // Cursor position
-
   int current_window_id;
 
   SWCLArray windows;

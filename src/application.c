@@ -178,16 +178,18 @@ SWCLApplication *swcl_application_new(char *app_id) {
 
   // Connect to display
   app->wl_display = wl_display_connect(NULL);
-  if (!app->wl_display)
-    SWCL_PANIC("Failed to connect to wl_display");
-  else
+  if (!app->wl_display) {
+    SWCL_LOG("Failed to connect to wl_display");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Connected to wl_display");
 
   // Connect to registry
   app->wl_registry = wl_display_get_registry(app->wl_display);
-  if (!app->wl_registry)
-    SWCL_PANIC("Failed to connect to wl_registry");
-  else
+  if (!app->wl_registry) {
+    SWCL_LOG("Failed to connect to wl_registry");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Connected to wl_registry");
 
   wl_registry_add_listener(app->wl_registry, &wl_registry_listener, app);
@@ -197,22 +199,25 @@ SWCLApplication *swcl_application_new(char *app_id) {
 
   // Get EGLDisplay
   app->egl_display = eglGetDisplay(app->wl_display);
-  if (app->egl_display == EGL_NO_DISPLAY)
-    SWCL_PANIC("Failed to get EGLDisplay");
-  else
+  if (app->egl_display == EGL_NO_DISPLAY) {
+    SWCL_LOG("Failed to get EGLDisplay");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Got EGLDisplay");
 
   // Init EGL
   EGLint major, minor;
-  if (eglInitialize(app->egl_display, &major, &minor) == EGL_FALSE)
-    SWCL_PANIC("Failed to init EGL");
-  else
+  if (eglInitialize(app->egl_display, &major, &minor) == EGL_FALSE) {
+    SWCL_LOG("Failed to init EGL");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Initialized EGL");
 
   // Bind OpenGL ES API to EGL
-  if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE)
-    SWCL_PANIC("Failed to bind OpenGL ES to EGL");
-  else
+  if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE) {
+    SWCL_LOG("Failed to bind OpenGL ES to EGL");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Binded OpenGL to EGL");
 
   EGLint config_attrs[] = {EGL_SURFACE_TYPE,
@@ -226,7 +231,7 @@ SWCLApplication *swcl_application_new(char *app_id) {
                            EGL_ALPHA_SIZE,
                            8,
                            EGL_RENDERABLE_TYPE,
-                           EGL_OPENGL_ES3_BIT,
+                           EGL_OPENGL_ES2_BIT,
                            EGL_SAMPLE_BUFFERS,
                            1, // Enable multi-sampling
                            EGL_SAMPLES,
@@ -237,18 +242,20 @@ SWCLApplication *swcl_application_new(char *app_id) {
   EGLint num;
   if (eglChooseConfig(app->egl_display, config_attrs, &app->egl_config, 1,
                       &num) == EGL_FALSE ||
-      num == 0)
-    SWCL_PANIC("Failed to choose EGL config");
-  else
+      num == 0) {
+    SWCL_LOG("Failed to choose EGL config");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Chosen EGL config");
 
   // Create EGL context
   EGLint context_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
   app->egl_context = eglCreateContext(app->egl_display, app->egl_config,
                                       EGL_NO_CONTEXT, context_attrs);
-  if (app->egl_context == EGL_NO_CONTEXT)
-    SWCL_PANIC("Failed to create EGL context");
-  else
+  if (app->egl_context == EGL_NO_CONTEXT) {
+    SWCL_LOG("Failed to create EGL context");
+    return NULL;
+  } else
     SWCL_LOG_DEBUG("Created EGL context");
 
   // Create windows array

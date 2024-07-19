@@ -2,6 +2,9 @@ CC=gcc
 CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL
 SOURCES=src/*.c
 
+TEST_CLIBS=-Llib -lswcl $(CLIBS)
+TESTS_BIN=tests/test_application
+
 build:
 	@echo "Building SWCL"
 	@mkdir -p include lib
@@ -14,10 +17,11 @@ build:
 
 test: build
 	@echo "Building tests"
-	@$(CC) tests/*.c -o tests/test -Llib -lswcl $(CLIBS)
+	@$(CC) tests/test_application.c -o tests/test_application $(TEST_CLIBS)
 	@echo "Running tests"
-	@./tests/test
+	@./tests/test_application
 	@echo "Done"
+	@rm -f $(TESTS_BIN)
 
 
 clean:
