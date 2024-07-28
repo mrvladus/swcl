@@ -1,5 +1,4 @@
 #include "../src/swcl.h"
-#include "tests.h"
 
 void test_draw(SWCLWindow *win) {
   swcl_clear_background(0, 0, 1, 1);
@@ -70,6 +69,8 @@ void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
 void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
                  uint32_t serial) {
   SWCL_LOG("Key: keycode=%d, state=%d, serial=%d", key, state, serial);
+
+  // Quit when Esc released
   if (key == 1 && state == 0) {
     swcl_quit();
   }
@@ -83,8 +84,7 @@ void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
 //            mods_depressed, mods_latched, mods_locked, group, serial);
 // }
 
-SWCLTestResult test_all() {
-  SWCLTestResult res = {0, 0};
+int main() {
   SWCLConfig swcl_cfg = {
       "io.github.mrvladus.Test",
       test_pointer_enter,
@@ -104,12 +104,8 @@ SWCLTestResult test_all() {
       // .maximized = true,
       // .fullscreen = true,
       .on_draw_cb = test_draw,
-      // .on_keyboard_key_cb = test_kb_key,
-      // .on_keyboard_mod_key_cb = test_kb_mod_key,
   };
   SWCLWindow *win = swcl_window_new(cfg);
   swcl_run();
-
-  res.passed = 1;
-  return res;
+  return 0;
 }

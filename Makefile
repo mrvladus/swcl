@@ -23,13 +23,13 @@ build-debug:
 	@rm -f *.o
 	@echo "Done"
 
-test: build-debug
-	@$(CC) tests/tests.c -o tests/tests -Llib -lswcl $(CLIBS) -DSWCL_ENABLE_DEBUG_LOGS
-	@./tests/tests
-	@rm -f tests/tests
+run: build-debug
+	@$(CC) examples/events.c -o examples/events -Llib -lswcl $(CLIBS) -DSWCL_ENABLE_DEBUG_LOGS
+	@./examples/events
+	@rm -f examples/events
 
 
 clean:
-	@rm -f *.o tests/test include lib
+	@rm -f *.o examples/events include lib
 
 .PHONY: build test clean

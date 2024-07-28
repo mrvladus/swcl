@@ -203,13 +203,8 @@ typedef struct {
   bool maximized;
   bool fullscreen;
 
-  // Callbacks
+  // Draw callback
   void (*on_draw_cb)(SWCLWindow *win);
-  void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
-  void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
-  void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
-                             SWCLButtonState state, uint32_t serial);
-
 } SWCLWindowConfig;
 
 // Create new window.
@@ -217,25 +212,6 @@ typedef struct {
 // wl_surface, xdg_surface, xdg_toplevel and putting egl_window with OpenGL
 // context into it.
 SWCLWindow *swcl_window_new(SWCLWindowConfig cfg);
-
-// Connect callback to window event.
-// First argument is event name.
-// Second argument is callback funtion.
-// Here is the event names and their arguments passed to callbacks:
-//
-// "draw" -> (SWCLWindow *win)
-//
-// "pointer-enter" -> (SWCLWindow *win, int x, int y)
-//
-// "pointer-leave" -> (SWCLWindow *win)
-//
-// "pointer-motion" -> (SWCLWindow *win, int x, int y)
-//
-// "mouse-scroll" -> (SWCLWindow *win, SWCLScrollDirection dir)
-//
-// "mouse-button" -> (SWCLWindow *win, SWCLMouseButton button, SWCLButtonState
-// state, uint32_t serial)
-void swcl_window_connect(SWCLWindow *win, void *callback);
 
 // Tells compositor to begin native drag operation. With this window can be
 // snapped to the sides if comositor allows it. This function is useful for
