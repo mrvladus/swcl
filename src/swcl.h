@@ -162,6 +162,8 @@ bool swcl_init(SWCLConfig *cfg);
 // Start the application loop
 void swcl_run();
 
+void swcl_quit();
+
 // ---------- WINDOW ---------- //
 
 // Toplevel window object

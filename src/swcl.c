@@ -453,14 +453,11 @@ static struct wl_keyboard_listener wl_keyboard_listener = {
 
 static void on_wl_seat_capabilities(void *data, struct wl_seat *seat,
                                     uint32_t capability) {
-  SWCLConfig *cfg = (SWCLConfig *)data;
+  SWCLConfig *cfg = data;
   if (!cfg) {
     SWCL_LOG_DEBUG("SWCLConfig is NULL");
     return;
   }
-
-  SWCL_LOG_DEBUG("on_wl_seat_capabilities called with capability: %u",
-                 capability);
 
   if ((capability & WL_SEAT_CAPABILITY_POINTER) && !swcl_wl_pointer) {
     swcl_wl_pointer = wl_seat_get_pointer(seat);
@@ -622,3 +619,5 @@ void swcl_run() {
     wl_display_dispatch(swcl_wl_display);
   }
 }
+
+void swcl_quit() { swcl_app_running = false; }

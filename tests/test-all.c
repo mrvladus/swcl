@@ -70,6 +70,9 @@ void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
 void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
                  uint32_t serial) {
   SWCL_LOG("Key: keycode=%d, state=%d, serial=%d", key, state, serial);
+  if (key == 1 && state == 0) {
+    swcl_quit();
+  }
 }
 
 // void test_kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
