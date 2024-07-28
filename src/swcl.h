@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <EGL/egl.h>
+#include <wayland-client.h>
+
 // -------- MACROS -------- //
 
 // Logging
@@ -84,31 +87,110 @@ typedef enum {
 
 // ---------- STRUCTS ---------- //
 
+typedef struct SWCLWindow SWCLWindow;
+
+typedef struct SWCLCursor SWCLCursor;
+struct SWCLCursor {
+  struct wl_shm *wl_shm;
+  struct wl_buffer *wl_buffer;
+  struct wl_surface *wl_surface;
+  struct wl_cursor_theme *wl_cursor_theme;
+  struct wl_cursor_image *wl_cursor_image;
+  struct wl_cursor *wl_cursor;
+};
+
+typedef struct {
+  const char *app_id;
+  void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y);
+  void (*on_pointer_leave_cb)(SWCLWindow *win);
+} SWCLConfig;
+
 // Position with x and y coordinates
 typedef struct {
   int x;
   int y;
 } SWCLPoint;
 
-// ---------- APPLICATON ---------- //
+// ---------- GLOBALS ---------- //
 
-// Application object. Must be created first.
-typedef struct SWCLApplication SWCLApplication;
+extern struct wl_display *swcl_wl_display;
+extern struct wl_registry *swcl_wl_registry;
+extern struct wl_compositor *swcl_wl_compositor;
+extern struct wl_seat *swcl_wl_seat;
+extern struct wl_pointer *swcl_wl_pointer;
+extern struct wl_keyboard *swcl_wl_keyboard;
+extern struct xdg_wm_base *swcl_xdg_wm_base;
 
-// Creates new SWCLApplication.
+extern EGLConfig swcl_egl_config;
+extern EGLDisplay swcl_egl_display;
+extern EGLContext swcl_egl_context;
+
+// Application ID
+extern const char *swcl_app_id;
+// Application run state
+extern bool swcl_app_running;
+// Cursor position
+extern SWCLPoint swcl_cursor_pos;
+// Current window ID
+extern int swcl_current_window_id;
+
+extern struct wl_shm *swcl_wl_cursor_shm;
+extern struct wl_buffer *swcl_wl_cursor_buffer;
+extern struct wl_surface *swcl_wl_cursor_surface;
+extern struct wl_cursor_theme *swcl_wl_cursor_theme;
+extern struct wl_cursor_image *swcl_wl_cursor_image;
+extern struct wl_cursor *swcl_wl_cursor;
+
+extern SWCLArray swcl_windows;
+
+// ---------- INITIALIZATION ---------- //
+
+// Initialize SWCL.
 // It will initialize connection to Wayland display, register mouse, keyboard
 // and touch devices. Also it will initialize EGL and create OpenGL context.
-SWCLApplication *swcl_application_new(char *app_id);
+bool swcl_init(SWCLConfig *cfg);
 
 // Start the application loop
-void swcl_application_run(SWCLApplication *app);
-
-SWCLPoint swcl_application_get_cursor_position(SWCLApplication *app);
+void swcl_run();
 
 // ---------- WINDOW ---------- //
 
 // Toplevel window object
-typedef struct SWCLWindow SWCLWindow;
+struct SWCLWindow {
+  // Props
+  int id;
+  char *title;
+  int width;
+  int height;
+  int min_width;
+  int min_height;
+  bool maximized;
+  bool fullscreen;
+
+  void (*on_draw_cb)(SWCLWindow *win);
+
+  void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
+  void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
+  void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
+                             SWCLButtonState state, uint32_t serial);
+  void (*on_keyboard_key_cb)(SWCLWindow *win, uint32_t key,
+                             SWCLButtonState state, uint32_t serial);
+  void (*on_keyboard_mod_key_cb)(SWCLWindow *win, uint32_t mods_depressed,
+                                 uint32_t mods_latched, uint32_t mods_locked,
+                                 uint32_t group, uint32_t serial);
+
+  // Wayland
+  struct wl_surface *wl_surface;
+  struct wl_callback *wl_callback;
+  struct xdg_surface *xdg_surface;
+  struct xdg_toplevel *xdg_toplevel;
+
+  SWCLCursor cursor;
+
+  // EGL
+  struct wl_egl_window *egl_window;
+  EGLSurface egl_surface;
+};
 
 typedef struct {
   // Properties
@@ -122,8 +204,6 @@ typedef struct {
 
   // Callbacks
   void (*on_draw_cb)(SWCLWindow *win);
-  void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y);
-  void (*on_pointer_leave_cb)(SWCLWindow *win);
   void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
   void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
   void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
@@ -139,7 +219,7 @@ typedef struct {
 // This function takes care of creating native wayland window with stuff like
 // wl_surface, xdg_surface, xdg_toplevel and putting egl_window with OpenGL
 // context into it.
-SWCLWindow *swcl_window_new(SWCLApplication *app, SWCLWindowConfig cfg);
+SWCLWindow *swcl_window_new(SWCLWindowConfig cfg);
 
 // Connect callback to window event.
 // First argument is event name.
@@ -178,9 +258,6 @@ void swcl_window_resize(SWCLWindow *win, SWCLWindowEdge edge, uint32_t serial);
 void swcl_window_swap_buffers(SWCLWindow *win);
 
 // Get window properties
-
-// Application object
-SWCLApplication *swcl_window_get_application(SWCLWindow *win);
 
 // ID property
 int swcl_window_get_id(SWCLWindow *win);
@@ -222,6 +299,9 @@ void swcl_window_set_maximized(SWCLWindow *win, bool maximized);
 
 // Set window fullscreen state
 void swcl_window_set_fullscreen(SWCLWindow *win, bool maximized);
+
+// Set cursor image from name
+void swcl_window_set_cursor(SWCLWindow *win, const char *name, uint32_t serial);
 
 // ---------- DRAWING ---------- //
 

@@ -1,6 +1,6 @@
 #include "tests.h"
 #include "test-all.c"
-#include "test-application.c"
+// #include "test-application.c"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -34,9 +34,9 @@ uint8_t finish_testing() {
 }
 
 int main(int argc, char const *argv[]) {
-  run_test(test_swcl_application_new, "swcl_application_new");
-  run_test(test_swcl_application_get_cursor_position,
-           "test_swcl_application_get_cursor_position");
+  // run_test(test_swcl_application_new, "swcl_application_new");
+  // run_test(test_swcl_application_get_cursor_position,
+  //          "test_swcl_application_get_cursor_position");
   run_test(test_all, "test_all");
   return finish_testing();
 }

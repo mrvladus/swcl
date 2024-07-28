@@ -9,11 +9,12 @@ void test_draw(SWCLWindow *win) {
 void test_pointer_enter(SWCLWindow *win, int x, int y) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer entered: id=%d, x=%d, y=%d", id, x, y);
+  // swcl_window_set_cursor(win, "left_ptr", 0);
 }
 
 void test_pointer_leave(SWCLWindow *win) {
   int id = swcl_window_get_id(win);
-  SWCL_LOG("Pointer leaved: id: %d", id);
+  SWCL_LOG("Pointer leave: id: %d", id);
 }
 
 void test_pointer_motion(SWCLWindow *win, int x, int y) {
@@ -33,37 +34,35 @@ void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
   int id = swcl_window_get_id(win);
   int width = swcl_window_get_width(win);
   int height = swcl_window_get_height(win);
-  SWCLApplication *app = swcl_window_get_application(win);
-  SWCLPoint cur_pos = swcl_application_get_cursor_position(app);
 
   SWCL_LOG("Button pressed: id=%d, key=%d, state=%d, serial=%d, "
            "x=%d, y=%d",
-           id, button, state, serial, cur_pos.x, cur_pos.y);
+           id, button, state, serial, swcl_cursor_pos.x, swcl_cursor_pos.y);
 
   // Handle window resize
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED) {
     uint8_t b = 10; // Border
-    if (cur_pos.x < b && cur_pos.y < b)
+    if (swcl_cursor_pos.x < b && swcl_cursor_pos.y < b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_TOP_LEFT);
-    else if (cur_pos.x > width - b && cur_pos.y < b)
+    else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y < b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_TOP_RIGHT);
-    else if (cur_pos.x < 5 && cur_pos.y > height - b)
+    else if (swcl_cursor_pos.x < 5 && swcl_cursor_pos.y > height - b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_BOTTOM_LEFT);
-    else if (cur_pos.x > width - b && cur_pos.y > height - b)
+    else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y > height - b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_BOTTOM_RIGHT);
-    else if (cur_pos.y < b)
+    else if (swcl_cursor_pos.y < b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_TOP);
-    else if (cur_pos.y > height - b)
+    else if (swcl_cursor_pos.y > height - b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_BOTTOM);
-    else if (cur_pos.x < b)
+    else if (swcl_cursor_pos.x < b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_LEFT);
-    else if (cur_pos.x > width - b)
+    else if (swcl_cursor_pos.x > width - b)
       swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_RIGHT);
   }
 
   // Handle window drag
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED &&
-      cur_pos.y < 50 && cur_pos.y > 5) {
+      swcl_cursor_pos.y < 50 && swcl_cursor_pos.y > 5) {
     swcl_window_drag(win, serial);
   }
 }
@@ -73,17 +72,22 @@ void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
   SWCL_LOG("Key: keycode=%d, state=%d, serial=%d", key, state, serial);
 }
 
-void test_kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
-                     uint32_t mods_latched, uint32_t mods_locked,
-                     uint32_t group, uint32_t serial) {
-  SWCL_LOG("Key: mods_depressed=%d, mods_latched=%d, "
-           "mods_locked=%d,group=%d,serial=%d",
-           mods_depressed, mods_latched, mods_locked, group, serial);
-}
+// void test_kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
+//                      uint32_t mods_latched, uint32_t mods_locked,
+//                      uint32_t group, uint32_t serial) {
+//   SWCL_LOG("Key: mods_depressed=%d, mods_latched=%d, "
+//            "mods_locked=%d,group=%d,serial=%d",
+//            mods_depressed, mods_latched, mods_locked, group, serial);
+// }
 
 SWCLTestResult test_all() {
   SWCLTestResult res = {0, 0};
-  SWCLApplication *app = swcl_application_new("io.github.mrvladus.Test");
+  SWCLConfig swcl_cfg = {
+      "io.github.mrvladus.Test",
+      test_pointer_enter,
+      test_pointer_leave,
+  };
+  swcl_init(&swcl_cfg);
   SWCLWindowConfig cfg = {
       .title = "Test",
       .height = 700,
@@ -93,17 +97,14 @@ SWCLTestResult test_all() {
       // .maximized = true,
       // .fullscreen = true,
       .on_draw_cb = test_draw,
-      .on_pointer_enter_cb = test_pointer_enter,
-      .on_pointer_leave_cb = test_pointer_leave,
-      .on_pointer_motion_cb = test_pointer_motion,
-      .on_mouse_scroll_cb = test_scroll,
-      .on_mouse_button_cb = test_mouse_button_pressed,
-      .on_keyboard_key_cb = test_kb_key,
-      .on_keyboard_mod_key_cb = test_kb_mod_key,
+      // .on_pointer_motion_cb = test_pointer_motion,
+      // .on_mouse_scroll_cb = test_scroll,
+      // .on_mouse_button_cb = test_mouse_button_pressed,
+      // .on_keyboard_key_cb = test_kb_key,
+      // .on_keyboard_mod_key_cb = test_kb_mod_key,
   };
-  SWCLWindow *win = swcl_window_new(app, cfg);
-
-  swcl_application_run(app);
+  SWCLWindow *win = swcl_window_new(cfg);
+  swcl_run();
 
   res.passed = 1;
   return res;
