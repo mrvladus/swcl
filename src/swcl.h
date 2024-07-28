@@ -113,6 +113,11 @@ typedef enum {
   SWCL_WINDOW_EDGE_BOTTOM_RIGHT = 10,
 } SWCLWindowEdge;
 
+typedef enum {
+  SWCL_WINDOW_FLAG_MAXIMIZED = 0x1,
+  SWCL_WINDOW_FLAG_FULLSCREEN = 0x2,
+} SWCLWindowFlags;
+
 // ---------- STRUCTS ---------- //
 
 typedef struct SWCLWindow SWCLWindow;
@@ -175,14 +180,7 @@ extern bool swcl_app_running;
 extern SWCLPoint swcl_cursor_pos;
 // Current window ID
 extern int swcl_current_window_id;
-
-extern struct wl_shm *swcl_wl_cursor_shm;
-extern struct wl_buffer *swcl_wl_cursor_buffer;
-extern struct wl_surface *swcl_wl_cursor_surface;
-extern struct wl_cursor_theme *swcl_wl_cursor_theme;
-extern struct wl_cursor_image *swcl_wl_cursor_image;
-extern struct wl_cursor *swcl_wl_cursor;
-
+// Dinamic array of windows
 extern SWCLArray swcl_windows;
 
 // ---------- INITIALIZATION ---------- //
@@ -195,6 +193,7 @@ bool swcl_init(SWCLConfig *cfg);
 // Start the application loop
 void swcl_run();
 
+// Shutdown SWCL application
 void swcl_quit();
 
 // ---------- WINDOW ---------- //
@@ -204,10 +203,10 @@ struct SWCLWindow {
   // Props
   int id;
   char *title;
-  int width;
-  int height;
-  int min_width;
-  int min_height;
+  uint32_t width;
+  uint32_t height;
+  uint32_t min_width;
+  uint32_t min_height;
   bool maximized;
   bool fullscreen;
 
@@ -230,10 +229,10 @@ struct SWCLWindow {
 typedef struct {
   // Properties
   char *title;
-  int width;
-  int height;
-  int min_width;
-  int min_height;
+  uint32_t width;
+  uint32_t height;
+  uint32_t min_width;
+  uint32_t min_height;
   bool maximized;
   bool fullscreen;
 

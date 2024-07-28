@@ -33,6 +33,14 @@ int swcl_current_window_id;
 SWCLArray swcl_windows;
 SWCLWindow *current_window;
 
+// Cursor
+struct wl_buffer *swcl_wl_cursor_buffer;
+struct wl_cursor *swcl_wl_cursor;
+struct wl_cursor_theme *swcl_wl_cursor_theme;
+struct wl_cursor_image *swcl_wl_cursor_image;
+struct wl_shm *swcl_wl_cursor_shm;
+struct wl_surface *swcl_wl_cursor_surface;
+
 // --------------------------------- //
 //              DRAWING              //
 // --------------------------------- //
@@ -340,6 +348,21 @@ static void on_wl_pointer_enter(void *data, struct wl_pointer *pointer,
                                  swcl_cursor_pos.y);
     }
   }
+
+  // Set cursor
+  if (!swcl_wl_cursor_surface)
+    swcl_wl_cursor_surface = wl_compositor_create_surface(swcl_wl_compositor);
+  swcl_wl_cursor_theme = wl_cursor_theme_load(NULL, 16, swcl_wl_cursor_shm);
+  swcl_wl_cursor = wl_cursor_theme_get_cursor(swcl_wl_cursor_theme, "left_ptr");
+  swcl_wl_cursor_image = swcl_wl_cursor->images[0];
+  swcl_wl_cursor_buffer = wl_cursor_image_get_buffer(swcl_wl_cursor_image);
+  wl_pointer_set_cursor(pointer, serial, swcl_wl_cursor_surface,
+                        swcl_wl_cursor_image->hotspot_x,
+                        swcl_wl_cursor_image->hotspot_y);
+  wl_surface_attach(swcl_wl_cursor_surface, swcl_wl_cursor_buffer, 0, 0);
+  wl_surface_damage(swcl_wl_cursor_surface, 0, 0, swcl_wl_cursor_image->width,
+                    swcl_wl_cursor_image->height);
+  wl_surface_commit(swcl_wl_cursor_surface);
 };
 
 static void on_wl_pointer_leave(void *data, struct wl_pointer *pointer,
@@ -468,6 +491,8 @@ static void on_wl_registry_global(void *data, struct wl_registry *registry,
     swcl_wl_seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
     wl_seat_add_listener(swcl_wl_seat, &wl_seat_listener, cfg);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
+  } else if (strcmp(interface, wl_shm_interface.name) == 0) {
+    swcl_wl_cursor_shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
   }
 }
 
