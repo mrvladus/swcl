@@ -5,13 +5,12 @@ void test_draw(SWCLWindow *win) {
   swcl_window_swap_buffers(win);
 }
 
-void test_pointer_enter(SWCLWindow *win, int x, int y) {
+void test_pointer_enter(SWCLWindow *win, int x, int y, uint32_t serial) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer entered: id=%d, x=%d, y=%d", id, x, y);
-  // swcl_window_set_cursor(win, "left_ptr", 0);
 }
 
-void test_pointer_leave(SWCLWindow *win) {
+void test_pointer_leave(SWCLWindow *win, uint32_t serial) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer leave: id: %d", id);
 }
@@ -19,6 +18,11 @@ void test_pointer_leave(SWCLWindow *win) {
 void test_pointer_motion(SWCLWindow *win, int x, int y) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", id, x, y);
+  if (x < 10) {
+    swcl_set_cursor("left_side", 16, 0);
+  } else {
+    swcl_set_cursor("left_ptr", 16, 0);
+  }
 }
 
 void test_scroll(SWCLWindow *win, SWCLScrollDirection dir) {

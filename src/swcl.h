@@ -137,8 +137,8 @@ typedef struct SWCLCursor {
 // Callbacks can be NULL.
 typedef struct {
   const char *app_id;
-  void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y);
-  void (*on_pointer_leave_cb)(SWCLWindow *win);
+  void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y, uint32_t serial);
+  void (*on_pointer_leave_cb)(SWCLWindow *win, uint32_t serial);
   void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
   void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
                              SWCLButtonState state, uint32_t serial);
@@ -195,6 +195,10 @@ void swcl_run();
 
 // Shutdown SWCL application
 void swcl_quit();
+
+// ---------- CURSOR ---------- //
+
+void swcl_set_cursor(const char *name, uint8_t size, uint32_t serial);
 
 // ---------- WINDOW ---------- //
 
