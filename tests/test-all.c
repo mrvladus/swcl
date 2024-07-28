@@ -86,6 +86,10 @@ SWCLTestResult test_all() {
       "io.github.mrvladus.Test",
       test_pointer_enter,
       test_pointer_leave,
+      test_pointer_motion,
+      test_mouse_button_pressed,
+      test_scroll,
+      test_kb_key,
   };
   swcl_init(&swcl_cfg);
   SWCLWindowConfig cfg = {
@@ -97,9 +101,6 @@ SWCLTestResult test_all() {
       // .maximized = true,
       // .fullscreen = true,
       .on_draw_cb = test_draw,
-      // .on_pointer_motion_cb = test_pointer_motion,
-      // .on_mouse_scroll_cb = test_scroll,
-      // .on_mouse_button_cb = test_mouse_button_pressed,
       // .on_keyboard_key_cb = test_kb_key,
       // .on_keyboard_mod_key_cb = test_kb_mod_key,
   };

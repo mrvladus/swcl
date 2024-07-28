@@ -103,6 +103,15 @@ typedef struct {
   const char *app_id;
   void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y);
   void (*on_pointer_leave_cb)(SWCLWindow *win);
+  void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
+  void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
+                             SWCLButtonState state, uint32_t serial);
+  void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
+  void (*on_keyboard_key_cb)(SWCLWindow *win, uint32_t key,
+                             SWCLButtonState state, uint32_t serial);
+  void (*on_keyboard_mod_key_cb)(SWCLWindow *win, uint32_t mods_depressed,
+                                 uint32_t mods_latched, uint32_t mods_locked,
+                                 uint32_t group, uint32_t serial);
 } SWCLConfig;
 
 // Position with x and y coordinates
@@ -169,16 +178,6 @@ struct SWCLWindow {
 
   void (*on_draw_cb)(SWCLWindow *win);
 
-  void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
-  void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
-  void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
-                             SWCLButtonState state, uint32_t serial);
-  void (*on_keyboard_key_cb)(SWCLWindow *win, uint32_t key,
-                             SWCLButtonState state, uint32_t serial);
-  void (*on_keyboard_mod_key_cb)(SWCLWindow *win, uint32_t mods_depressed,
-                                 uint32_t mods_latched, uint32_t mods_locked,
-                                 uint32_t group, uint32_t serial);
-
   // Wayland
   struct wl_surface *wl_surface;
   struct wl_callback *wl_callback;
@@ -208,11 +207,7 @@ typedef struct {
   void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
   void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
                              SWCLButtonState state, uint32_t serial);
-  void (*on_keyboard_key_cb)(SWCLWindow *win, uint32_t key,
-                             SWCLButtonState state, uint32_t serial);
-  void (*on_keyboard_mod_key_cb)(SWCLWindow *win, uint32_t mods_depressed,
-                                 uint32_t mods_latched, uint32_t mods_locked,
-                                 uint32_t group, uint32_t serial);
+
 } SWCLWindowConfig;
 
 // Create new window.

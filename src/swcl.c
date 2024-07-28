@@ -186,11 +186,6 @@ SWCLWindow *swcl_window_new(SWCLWindowConfig cfg) {
   strcpy(win->title, cfg.title);
 
   win->on_draw_cb = cfg.on_draw_cb;
-  win->on_pointer_motion_cb = cfg.on_pointer_motion_cb;
-  win->on_mouse_scroll_cb = cfg.on_mouse_scroll_cb;
-  win->on_mouse_button_cb = cfg.on_mouse_button_cb;
-  win->on_keyboard_key_cb = cfg.on_keyboard_key_cb;
-  // win->on_keyboard_mod_key_cb = cfg.on_keyboard_mod_key_cb;
 
   SWCL_LOG_DEBUG("Create new window with id: %d, width: %d, height: %d",
                  win->id, win->width, win->height);
@@ -360,8 +355,9 @@ static struct xdg_wm_base_listener xdg_wm_base_listener = {
 static void on_wl_pointer_button(void *data, struct wl_pointer *pointer,
                                  uint32_t serial, uint32_t time,
                                  uint32_t button, uint32_t state) {
-  if (current_window->on_mouse_button_cb)
-    current_window->on_mouse_button_cb(current_window, button, state, serial);
+  SWCLConfig *cfg = data;
+  if (cfg->on_mouse_button_cb)
+    cfg->on_mouse_button_cb(current_window, button, state, serial);
 }
 
 static void on_wl_pointer_enter(void *data, struct wl_pointer *pointer,
@@ -393,17 +389,19 @@ static void on_wl_pointer_leave(void *data, struct wl_pointer *pointer,
 
 static void on_wl_pointer_motion(void *data, struct wl_pointer *pointer,
                                  uint32_t time, wl_fixed_t x, wl_fixed_t y) {
+  SWCLConfig *cfg = data;
   swcl_cursor_pos.x = wl_fixed_to_int(x);
   swcl_cursor_pos.y = wl_fixed_to_int(y);
-  if (current_window->on_pointer_motion_cb)
-    current_window->on_pointer_motion_cb(current_window, swcl_cursor_pos.x,
-                                         swcl_cursor_pos.y);
+  if (cfg->on_pointer_motion_cb)
+    cfg->on_pointer_motion_cb(current_window, swcl_cursor_pos.x,
+                              swcl_cursor_pos.y);
 };
 
 static void on_wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
                                uint32_t time, uint32_t axis, wl_fixed_t value) {
-  if (current_window->on_mouse_scroll_cb)
-    current_window->on_mouse_scroll_cb(current_window, 1 ? value > 0 : 0);
+  SWCLConfig *cfg = data;
+  if (cfg->on_mouse_scroll_cb)
+    cfg->on_mouse_scroll_cb(current_window, 1 ? value > 0 : 0);
 };
 
 static struct wl_pointer_listener wl_pointer_listener = {
@@ -429,20 +427,21 @@ void on_wl_kb_focus_leave_surface(void *data, struct wl_keyboard *wl_keyboard,
 
 void on_wl_kb_key(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
                   uint32_t time, uint32_t key, uint32_t state) {
-  if (current_window->on_keyboard_key_cb)
-    current_window->on_keyboard_key_cb(current_window, key, state, serial);
+  SWCLConfig *cfg = data;
+  if (cfg->on_keyboard_key_cb)
+    cfg->on_keyboard_key_cb(current_window, key, state, serial);
 }
 
 void on_wl_kb_mod(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
                   uint32_t mods_depressed, uint32_t mods_latched,
                   uint32_t mods_locked, uint32_t group) {
-  if (current_window->on_keyboard_mod_key_cb)
-    current_window->on_keyboard_mod_key_cb(current_window, mods_depressed,
-                                           mods_latched, mods_locked, group,
-                                           serial);
+  SWCLConfig *cfg = data;
+  if (cfg->on_keyboard_mod_key_cb)
+    cfg->on_keyboard_mod_key_cb(current_window, mods_depressed, mods_latched,
+                                mods_locked, group, serial);
 }
 
-static const struct wl_keyboard_listener wl_keyboard_listener = {
+static struct wl_keyboard_listener wl_keyboard_listener = {
     .keymap = on_wl_kb_keymap,
     .enter = on_wl_kb_focus_enter_surface,
     .leave = on_wl_kb_focus_leave_surface,
@@ -454,27 +453,36 @@ static const struct wl_keyboard_listener wl_keyboard_listener = {
 
 static void on_wl_seat_capabilities(void *data, struct wl_seat *seat,
                                     uint32_t capability) {
-  SWCLConfig *cfg = data;
-
-  // Get pointer
-  swcl_wl_pointer = wl_seat_get_pointer(swcl_wl_seat);
-  if (!swcl_wl_pointer)
-    SWCL_LOG_DEBUG("No pointer found");
-  else {
-    SWCL_LOG_DEBUG("Got pointer");
-    wl_pointer_add_listener(swcl_wl_pointer, &wl_pointer_listener, cfg);
-    wl_display_roundtrip(swcl_wl_display);
+  SWCLConfig *cfg = (SWCLConfig *)data;
+  if (!cfg) {
+    SWCL_LOG_DEBUG("SWCLConfig is NULL");
+    return;
   }
 
-  // Get keyboard
-  // swcl_wl_keyboard = wl_seat_get_keyboard(swcl_wl_seat);
-  // if (!swcl_wl_keyboard)
-  //   SWCL_LOG_DEBUG("No keyboard found");
-  // else {
-  //   SWCL_LOG_DEBUG("Got keyboard");
-  //   wl_keyboard_add_listener(swcl_wl_keyboard, &wl_keyboard_listener, NULL);
-  //   wl_display_roundtrip(swcl_wl_display);
-  // }
+  SWCL_LOG_DEBUG("on_wl_seat_capabilities called with capability: %u",
+                 capability);
+
+  if ((capability & WL_SEAT_CAPABILITY_POINTER) && !swcl_wl_pointer) {
+    swcl_wl_pointer = wl_seat_get_pointer(seat);
+    if (swcl_wl_pointer) {
+      SWCL_LOG_DEBUG("Got pointer");
+      wl_pointer_add_listener(swcl_wl_pointer, &wl_pointer_listener, cfg);
+      wl_display_roundtrip(swcl_wl_display);
+    } else {
+      SWCL_LOG_DEBUG("No pointer found");
+    }
+  }
+
+  if ((capability & WL_SEAT_CAPABILITY_KEYBOARD) && !swcl_wl_keyboard) {
+    swcl_wl_keyboard = wl_seat_get_keyboard(seat);
+    if (swcl_wl_keyboard) {
+      SWCL_LOG_DEBUG("Got keyboard");
+      wl_keyboard_add_listener(swcl_wl_keyboard, &wl_keyboard_listener, cfg);
+      wl_display_roundtrip(swcl_wl_display);
+    } else {
+      SWCL_LOG_DEBUG("No keyboard found");
+    }
+  }
 }
 
 static struct wl_seat_listener wl_seat_listener = {
