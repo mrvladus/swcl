@@ -14,7 +14,7 @@ build:
 	@echo "Done"
 
 build-debug:
-	@echo "Building SWCL"
+	@echo "Building SWCL in debug mode"
 	@mkdir -p include lib
 	@cp src/swcl.h include/swcl.h
 	@$(CC) -c $(SOURCES) $(CLIBS) -DSWCL_ENABLE_DEBUG_LOGS
@@ -24,12 +24,21 @@ build-debug:
 	@echo "Done"
 
 run: build-debug
-	@$(CC) examples/events.c -o examples/events -Llib -lswcl $(CLIBS) -DSWCL_ENABLE_DEBUG_LOGS
+	@$(CC) examples/events.c -o examples/events -Llib -lswcl $(CLIBS)
 	@./examples/events
 	@rm -f examples/events
 
+regenerate-protocols:
+	@echo "Regenerating Wayland Protocols files"
+	@wayland-scanner client-header < /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml > src/xdg-shell-protocol.h
+	@wayland-scanner private-code < /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml > src/xdg-shell-protocol.c
+	@curl https://gitlab.freedesktop.org/wlroots/wlr-protocols/-/raw/master/unstable/wlr-layer-shell-unstable-v1.xml -o wlr-layer-shell-unstable-v1.xml
+	@wayland-scanner client-header < wlr-layer-shell-unstable-v1.xml > src/wlr-layer-shell-protocol.h
+	@wayland-scanner private-code < wlr-layer-shell-unstable-v1.xml > src/wlr-layer-shell-protocol.c
+	@rm -f wlr-layer-shell-unstable-v1.xml
+	@echo "Done"
 
 clean:
 	@rm -f *.o examples/events include lib
 
-.PHONY: build test clean
+.PHONY: build run clean

@@ -9,6 +9,10 @@
 #include <EGL/egl.h>
 #include <wayland-client.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // -------- MACROS -------- //
 
 // Logging
@@ -30,7 +34,15 @@
 
 // ---------- UTILS ---------- //
 
-// Simple dynamic array structure
+// Function to generate unique ID
+static inline int swcl_generate_id() {
+  static int id = -1; // static variable to hold the current ID value
+  return ++id;        // increment and return the current ID
+}
+
+// --- Dynamic Array --- //
+
+// Simple dynamic array structure that can only be grown in size
 typedef struct {
   int length;
   int capacity;
@@ -38,16 +50,32 @@ typedef struct {
 } SWCLArray;
 
 // Create new dynamic array with given initial capacity.
-SWCLArray swcl_array_new(int initial_capacity);
+static inline SWCLArray swcl_array_new(int initial_capacity) {
+  SWCLArray a = {
+      .length = 0,
+      .capacity = initial_capacity,
+      .items = (void **)malloc(sizeof(void *) * initial_capacity),
+  };
+  return a;
+};
 
 // Add item to the end of the array, resizing it if needed.
-void swcl_array_append(SWCLArray *array, void *item);
-
-// Remove item from the array
-void swcl_array_remove(SWCLArray *array, void *item);
+static inline void swcl_array_append(SWCLArray *array, void *item) {
+  if (array->length + 1 > array->capacity) {
+    void **new_array =
+        (void **)realloc(array->items, ++array->capacity * sizeof(void *));
+    array->items = new_array;
+  }
+  array->items[array->length++] = item;
+}
 
 // Destroy array
-void swcl_array_free(SWCLArray *array);
+static inline void swcl_array_free(SWCLArray *array) {
+  for (uint32_t i = 0; i < array->length; i++) {
+    free(&array[i]);
+  }
+  free(array);
+}
 
 // ---------- ENUMS ---------- //
 
@@ -89,16 +117,19 @@ typedef enum {
 
 typedef struct SWCLWindow SWCLWindow;
 
-typedef struct SWCLCursor SWCLCursor;
-struct SWCLCursor {
+typedef struct SWCLCursor {
   struct wl_shm *wl_shm;
   struct wl_buffer *wl_buffer;
   struct wl_surface *wl_surface;
   struct wl_cursor_theme *wl_cursor_theme;
   struct wl_cursor_image *wl_cursor_image;
   struct wl_cursor *wl_cursor;
-};
+} SWCLCursor;
 
+// SWCL application configuration.
+// Create before initializing.
+// app_id must be in format e. g. "com.mydomain.AppName"
+// Callbacks can be NULL.
 typedef struct {
   const char *app_id;
   void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y);
@@ -122,6 +153,7 @@ typedef struct {
 
 // ---------- GLOBALS ---------- //
 
+// Wayland specific variables (Use directly only if you know what you doing)
 extern struct wl_display *swcl_wl_display;
 extern struct wl_registry *swcl_wl_registry;
 extern struct wl_compositor *swcl_wl_compositor;
@@ -130,6 +162,7 @@ extern struct wl_pointer *swcl_wl_pointer;
 extern struct wl_keyboard *swcl_wl_keyboard;
 extern struct xdg_wm_base *swcl_xdg_wm_base;
 
+// EGL specific variables (Use directly only if you know what you doing)
 extern EGLConfig swcl_egl_config;
 extern EGLDisplay swcl_egl_display;
 extern EGLContext swcl_egl_context;
@@ -178,9 +211,10 @@ struct SWCLWindow {
   bool maximized;
   bool fullscreen;
 
+  // Draw function
   void (*on_draw_cb)(SWCLWindow *win);
 
-  // Wayland
+  // Wayland elements
   struct wl_surface *wl_surface;
   struct wl_callback *wl_callback;
   struct xdg_surface *xdg_surface;
@@ -280,5 +314,9 @@ void swcl_window_set_cursor(SWCLWindow *win, const char *name, uint32_t serial);
 
 // Clear window with RGBA color
 void swcl_clear_background(float r, float g, float b, float a);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SWCL_H

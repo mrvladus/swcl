@@ -1,9 +1,11 @@
 #include "swcl.h"
-#include "xdg-shell-client-protocol.h"
+#include "xdg-shell-protocol.h"
+
 #include <GLES2/gl2.h>
-#include <string.h>
 #include <wayland-cursor.h>
 #include <wayland-egl-core.h>
+
+#include <string.h>
 
 // --------------------------------- //
 //              GLOBALS              //
@@ -30,46 +32,6 @@ int swcl_current_window_id;
 
 SWCLArray swcl_windows;
 SWCLWindow *current_window;
-
-// Callbacks
-
-// --------------------------------- //
-//               UTILS               //
-// --------------------------------- //
-
-// Function to generate unique ID
-static int swcl_generate_id() {
-  static int id = -1; // static variable to hold the current ID value
-  return ++id;        // increment and return the current ID
-}
-
-// ---------- DYNAMIC ARRAY ---------- //
-
-// Create new dynamic array with given initial capacity.
-SWCLArray swcl_array_new(int initial_capacity) {
-  SWCLArray a = {
-      .length = 0,
-      .capacity = initial_capacity,
-      .items = (void **)malloc(sizeof(void *) * initial_capacity),
-  };
-  return a;
-};
-
-// Add item to the end of the array, resizing it if needed.
-void swcl_array_append(SWCLArray *array, void *item) {
-  if (array->length + 1 > array->capacity) {
-    void **new_array =
-        (void **)realloc(array->items, ++array->capacity * sizeof(void *));
-    array->items = new_array;
-  }
-  array->items[array->length++] = item;
-}
-
-// Remove item from the array
-void swcl_array_remove(SWCLArray *array, void *item) {}
-
-// Destroy array
-void swcl_array_free(SWCLArray *array) { free(array); }
 
 // --------------------------------- //
 //              DRAWING              //
@@ -501,12 +463,10 @@ static void on_wl_registry_global(void *data, struct wl_registry *registry,
     swcl_xdg_wm_base =
         wl_registry_bind(registry, id, &xdg_wm_base_interface, 2);
     xdg_wm_base_add_listener(swcl_xdg_wm_base, &xdg_wm_base_listener, NULL);
-    // wl_display_roundtrip(swcl_wl_display);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 2);
   } else if (strcmp(interface, wl_seat_interface.name) == 0) {
     swcl_wl_seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
     wl_seat_add_listener(swcl_wl_seat, &wl_seat_listener, cfg);
-    // wl_display_roundtrip(swcl_wl_display);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   }
 }
