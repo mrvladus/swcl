@@ -137,11 +137,11 @@ typedef struct SWCLCursor {
 // Callbacks can be NULL.
 typedef struct {
   const char *app_id;
-  void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y, uint32_t serial);
-  void (*on_pointer_leave_cb)(SWCLWindow *win, uint32_t serial);
+  void (*on_pointer_enter_cb)(SWCLWindow *win, int x, int y);
+  void (*on_pointer_leave_cb)(SWCLWindow *win);
   void (*on_pointer_motion_cb)(SWCLWindow *win, int x, int y);
   void (*on_mouse_button_cb)(SWCLWindow *win, SWCLMouseButton button,
-                             SWCLButtonState state, uint32_t serial);
+                             SWCLButtonState state);
   void (*on_mouse_scroll_cb)(SWCLWindow *win, SWCLScrollDirection dir);
   void (*on_keyboard_key_cb)(SWCLWindow *win, uint32_t key,
                              SWCLButtonState state, uint32_t serial);
@@ -198,7 +198,7 @@ void swcl_quit();
 
 // ---------- CURSOR ---------- //
 
-void swcl_set_cursor(const char *name, uint8_t size, uint32_t serial);
+void swcl_set_cursor(const char *name, uint8_t size);
 
 // ---------- WINDOW ---------- //
 
@@ -253,16 +253,12 @@ SWCLWindow *swcl_window_new(SWCLWindowConfig cfg);
 // Tells compositor to begin native drag operation. With this window can be
 // snapped to the sides if comositor allows it. This function is useful for
 // implementing Client-Side Decorations (CSD).
-//
-// serial - is event id. It can be taken from "mouse-button" callback.
-void swcl_window_drag(SWCLWindow *win, uint32_t serial);
+void swcl_window_drag(SWCLWindow *win);
 
 // Tells compositor to begin native resize operation. With this window can be
 // resized if comositor allows it.
 // This function is useful for implementing Client-Side Decorations (CSD).
-//
-// serial - is event id. It can be taken from "mouse-button" callback.
-void swcl_window_resize(SWCLWindow *win, SWCLWindowEdge edge, uint32_t serial);
+void swcl_window_resize(SWCLWindow *win, SWCLWindowEdge edge);
 
 // Swap OpenGL buffer for rendered frame
 void swcl_window_swap_buffers(SWCLWindow *win);

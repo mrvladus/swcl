@@ -20,7 +20,9 @@ struct wl_pointer *swcl_wl_pointer;
 struct wl_keyboard *swcl_wl_keyboard;
 struct xdg_wm_base *swcl_xdg_wm_base;
 
-uint32_t wl_pointer_last_serial;
+uint32_t pointer_last_serial;
+uint32_t mouse_btn_last_serial;
+uint32_t keyboard_btn_last_serial;
 
 // EGL
 EGLConfig swcl_egl_config;
@@ -255,12 +257,13 @@ void swcl_window_make_current(SWCLWindow *win) {
     SWCL_PANIC("Failed to make egl_surface current");
 }
 
-void swcl_window_drag(SWCLWindow *win, uint32_t serial) {
-  xdg_toplevel_move(win->xdg_toplevel, swcl_wl_seat, serial);
+void swcl_window_drag(SWCLWindow *win) {
+  xdg_toplevel_move(win->xdg_toplevel, swcl_wl_seat, mouse_btn_last_serial);
 }
 
-void swcl_window_resize(SWCLWindow *win, uint32_t serial, SWCLWindowEdge edge) {
-  xdg_toplevel_resize(win->xdg_toplevel, swcl_wl_seat, serial, edge);
+void swcl_window_resize(SWCLWindow *win, SWCLWindowEdge edge) {
+  xdg_toplevel_resize(win->xdg_toplevel, swcl_wl_seat, mouse_btn_last_serial,
+                      edge);
 }
 
 void swcl_window_swap_buffers(SWCLWindow *win) {
@@ -322,15 +325,16 @@ static struct xdg_wm_base_listener xdg_wm_base_listener = {
 static void on_wl_pointer_button(void *data, struct wl_pointer *pointer,
                                  uint32_t serial, uint32_t time,
                                  uint32_t button, uint32_t state) {
+  mouse_btn_last_serial = serial;
   SWCLConfig *cfg = data;
   if (cfg->on_mouse_button_cb)
-    cfg->on_mouse_button_cb(current_window, button, state, serial);
-  wl_pointer_last_serial = serial;
+    cfg->on_mouse_button_cb(current_window, button, state);
 }
 
 static void on_wl_pointer_enter(void *data, struct wl_pointer *pointer,
                                 uint32_t serial, struct wl_surface *surface,
                                 wl_fixed_t x, wl_fixed_t y) {
+  pointer_last_serial = serial;
   SWCLConfig *cfg = data;
 
   swcl_cursor_pos.x = wl_fixed_to_int(x);
@@ -343,18 +347,17 @@ static void on_wl_pointer_enter(void *data, struct wl_pointer *pointer,
       swcl_current_window_id = win->id;
       if (cfg->on_pointer_enter_cb)
         cfg->on_pointer_enter_cb(current_window, swcl_cursor_pos.x,
-                                 swcl_cursor_pos.y, serial);
+                                 swcl_cursor_pos.y);
     }
   }
-  wl_pointer_last_serial = serial;
 };
 
 static void on_wl_pointer_leave(void *data, struct wl_pointer *pointer,
                                 uint32_t serial, struct wl_surface *surface) {
   SWCLConfig *cfg = data;
   if (cfg->on_pointer_leave_cb)
-    cfg->on_pointer_leave_cb(current_window, serial);
-  wl_pointer_last_serial = serial;
+    cfg->on_pointer_leave_cb(current_window);
+  pointer_last_serial = serial;
 };
 
 static void on_wl_pointer_motion(void *data, struct wl_pointer *pointer,
@@ -592,7 +595,7 @@ void swcl_run() {
 
 void swcl_quit() { swcl_app_running = false; }
 
-void swcl_set_cursor(const char *name, uint8_t size, uint32_t serial) {
+void swcl_set_cursor(const char *name, uint8_t size) {
   if (!swcl_current_cursor_name)
     goto create;
   if (!strcmp(swcl_current_cursor_name, name))
@@ -614,8 +617,7 @@ finish:
   wl_surface_damage(swcl_wl_cursor_surface, 0, 0, swcl_wl_cursor_image->width,
                     swcl_wl_cursor_image->height);
   wl_surface_commit(swcl_wl_cursor_surface);
-  wl_pointer_set_cursor(swcl_wl_pointer,
-                        serial ? serial != 0 : wl_pointer_last_serial,
+  wl_pointer_set_cursor(swcl_wl_pointer, pointer_last_serial,
                         swcl_wl_cursor_surface, swcl_wl_cursor_image->hotspot_x,
                         swcl_wl_cursor_image->hotspot_y);
   swcl_current_cursor_name = (char *)name;

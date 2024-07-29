@@ -1,29 +1,44 @@
 #include "../src/swcl.h"
+#include <stdint.h>
 
 void test_draw(SWCLWindow *win) {
   swcl_clear_background(0, 0, 1, 1);
   swcl_window_swap_buffers(win);
 }
 
-void test_pointer_enter(SWCLWindow *win, int x, int y, uint32_t serial) {
+void test_pointer_enter(SWCLWindow *win, int x, int y) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer entered: id=%d, x=%d, y=%d", id, x, y);
 }
 
-void test_pointer_leave(SWCLWindow *win, uint32_t serial) {
+void test_pointer_leave(SWCLWindow *win) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer leave: id: %d", id);
 }
 
 void test_pointer_motion(SWCLWindow *win, int x, int y) {
-  int id = swcl_window_get_id(win);
-  SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", id, x, y);
-  if (x < 10)
-    swcl_set_cursor("left_side", 16, 0);
-  else if (x > win->width - 10)
-    swcl_set_cursor("right_side", 16, 0);
+  static uint8_t border = 5;
+
+  if (x < border && y < border)
+    swcl_set_cursor("top_left_corner", 16);
+  else if (x > win->width - border && y < border)
+    swcl_set_cursor("top_right_corner", 16);
+  else if (x < border && y > win->height - border)
+    swcl_set_cursor("bottom_left_corner", 16);
+  else if (x > win->width - border && y > win->height - border)
+    swcl_set_cursor("bottom_right_corner", 16);
+  else if (y < border)
+    swcl_set_cursor("top_side", 16);
+  else if (y > win->height - border)
+    swcl_set_cursor("bottom_side", 16);
+  else if (x < border)
+    swcl_set_cursor("left_side", 16);
+  else if (x > win->width - border)
+    swcl_set_cursor("right_side", 16);
   else
-    swcl_set_cursor("left_ptr", 16, 0);
+    swcl_set_cursor("left_ptr", 16);
+
+  SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", swcl_window_get_id(win), x, y);
 }
 
 void test_scroll(SWCLWindow *win, SWCLScrollDirection dir) {
@@ -34,40 +49,40 @@ void test_scroll(SWCLWindow *win, SWCLScrollDirection dir) {
 }
 
 void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
-                               SWCLButtonState state, uint32_t serial) {
+                               SWCLButtonState state) {
   int id = swcl_window_get_id(win);
   int width = swcl_window_get_width(win);
   int height = swcl_window_get_height(win);
 
-  SWCL_LOG("Button pressed: id=%d, key=%d, state=%d, serial=%d, "
+  SWCL_LOG("Button pressed: id=%d, key=%d, state=%d, "
            "x=%d, y=%d",
-           id, button, state, serial, swcl_cursor_pos.x, swcl_cursor_pos.y);
+           id, button, state, swcl_cursor_pos.x, swcl_cursor_pos.y);
 
   // Handle window resize
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED) {
     uint8_t b = 10; // Border
     if (swcl_cursor_pos.x < b && swcl_cursor_pos.y < b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_TOP_LEFT);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP_LEFT);
     else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y < b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_TOP_RIGHT);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP_RIGHT);
     else if (swcl_cursor_pos.x < 5 && swcl_cursor_pos.y > height - b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_BOTTOM_LEFT);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_BOTTOM_LEFT);
     else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y > height - b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_BOTTOM_RIGHT);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_BOTTOM_RIGHT);
     else if (swcl_cursor_pos.y < b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_TOP);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP);
     else if (swcl_cursor_pos.y > height - b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_BOTTOM);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_BOTTOM);
     else if (swcl_cursor_pos.x < b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_LEFT);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_LEFT);
     else if (swcl_cursor_pos.x > width - b)
-      swcl_window_resize(win, serial, SWCL_WINDOW_EDGE_RIGHT);
+      swcl_window_resize(win, SWCL_WINDOW_EDGE_RIGHT);
   }
 
   // Handle window drag
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED &&
       swcl_cursor_pos.y < 50 && swcl_cursor_pos.y > 5) {
-    swcl_window_drag(win, serial);
+    swcl_window_drag(win);
   }
 }
 
