@@ -42,6 +42,7 @@ struct wl_cursor_theme *swcl_wl_cursor_theme;
 struct wl_cursor_image *swcl_wl_cursor_image;
 struct wl_shm *swcl_wl_cursor_shm;
 struct wl_surface *swcl_wl_cursor_surface;
+char *swcl_current_cursor_name;
 
 // --------------------------------- //
 //              DRAWING              //
@@ -241,6 +242,8 @@ SWCLWindow *swcl_window_new(SWCLWindowConfig cfg) {
   else
     xdg_toplevel_unset_fullscreen(win->xdg_toplevel);
 
+  // Setup cursor
+
   swcl_array_append(&swcl_windows, win);
   SWCL_LOG_DEBUG("Created window with id=%d, at %p", win->id, win);
   return win;
@@ -295,14 +298,6 @@ void swcl_window_set_min_size(SWCLWindow *win, int min_width, int min_height) {
   win->min_height = min_height;
   xdg_toplevel_set_min_size(win->xdg_toplevel, min_width, min_height);
 }
-
-// void swcl_window_set_cursor(SWCLWindow *win, const char *name,
-//                             uint32_t serial) {
-//   SWCLCursor cur = swcl_cursor_new(win, name);
-//   wl_pointer_set_cursor(swcl_wl_pointer, serial, cur.wl_surface,
-//                         cur.wl_cursor_image->hotspot_x,
-//                         cur.wl_cursor_image->hotspot_y);
-// }
 
 // --------------------------------- //
 //            APPLICATION            //
@@ -598,18 +593,30 @@ void swcl_run() {
 void swcl_quit() { swcl_app_running = false; }
 
 void swcl_set_cursor(const char *name, uint8_t size, uint32_t serial) {
-  if (!swcl_wl_cursor_surface)
-    swcl_wl_cursor_surface = wl_compositor_create_surface(swcl_wl_compositor);
+  if (!swcl_current_cursor_name)
+    goto create;
+  if (!strcmp(swcl_current_cursor_name, name))
+    goto update;
+
+create:
+  swcl_wl_cursor_surface = wl_compositor_create_surface(swcl_wl_compositor);
   swcl_wl_cursor_theme = wl_cursor_theme_load(NULL, size, swcl_wl_cursor_shm);
+  goto update;
+
+update:
   swcl_wl_cursor = wl_cursor_theme_get_cursor(swcl_wl_cursor_theme, name);
   swcl_wl_cursor_image = swcl_wl_cursor->images[0];
   swcl_wl_cursor_buffer = wl_cursor_image_get_buffer(swcl_wl_cursor_image);
+  wl_surface_attach(swcl_wl_cursor_surface, swcl_wl_cursor_buffer, 0, 0);
+  goto finish;
+
+finish:
+  wl_surface_damage(swcl_wl_cursor_surface, 0, 0, swcl_wl_cursor_image->width,
+                    swcl_wl_cursor_image->height);
+  wl_surface_commit(swcl_wl_cursor_surface);
   wl_pointer_set_cursor(swcl_wl_pointer,
                         serial ? serial != 0 : wl_pointer_last_serial,
                         swcl_wl_cursor_surface, swcl_wl_cursor_image->hotspot_x,
                         swcl_wl_cursor_image->hotspot_y);
-  wl_surface_attach(swcl_wl_cursor_surface, swcl_wl_cursor_buffer, 0, 0);
-  wl_surface_damage(swcl_wl_cursor_surface, 0, 0, swcl_wl_cursor_image->width,
-                    swcl_wl_cursor_image->height);
-  wl_surface_commit(swcl_wl_cursor_surface);
+  swcl_current_cursor_name = (char *)name;
 }

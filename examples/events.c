@@ -18,11 +18,12 @@ void test_pointer_leave(SWCLWindow *win, uint32_t serial) {
 void test_pointer_motion(SWCLWindow *win, int x, int y) {
   int id = swcl_window_get_id(win);
   SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", id, x, y);
-  if (x < 10) {
+  if (x < 10)
     swcl_set_cursor("left_side", 16, 0);
-  } else {
+  else if (x > win->width - 10)
+    swcl_set_cursor("right_side", 16, 0);
+  else
     swcl_set_cursor("left_ptr", 16, 0);
-  }
 }
 
 void test_scroll(SWCLWindow *win, SWCLScrollDirection dir) {
