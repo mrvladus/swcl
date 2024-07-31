@@ -1,22 +1,20 @@
 #include "../src/swcl.h"
 #include <stdint.h>
 
-void test_draw(SWCLWindow *win) {
+void draw(SWCLWindow *win) {
   swcl_clear_background(0, 0, 1, 1);
   swcl_window_swap_buffers(win);
 }
 
-void test_pointer_enter(SWCLWindow *win, int x, int y) {
-  int id = swcl_window_get_id(win);
-  SWCL_LOG("Pointer entered: id=%d, x=%d, y=%d", id, x, y);
+void pointer_enter(SWCLWindow *win, int x, int y) {
+  SWCL_LOG("Pointer entered: id=%d, x=%d, y=%d", win->id, x, y);
 }
 
-void test_pointer_leave(SWCLWindow *win) {
-  int id = swcl_window_get_id(win);
-  SWCL_LOG("Pointer leave: id: %d", id);
+void pointer_leave(SWCLWindow *win) {
+  SWCL_LOG("Pointer leave: id: %d", win->id);
 }
 
-void test_pointer_motion(SWCLWindow *win, int x, int y) {
+void pointer_motion(SWCLWindow *win, int x, int y) {
   static uint8_t border = 5;
 
   if (x < border && y < border)
@@ -38,21 +36,21 @@ void test_pointer_motion(SWCLWindow *win, int x, int y) {
   else
     swcl_set_cursor("left_ptr", 16);
 
-  SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", swcl_window_get_id(win), x, y);
+  SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", win->id, x, y);
 }
 
-void test_scroll(SWCLWindow *win, SWCLScrollDirection dir) {
+void scroll(SWCLWindow *win, SWCLScrollDirection dir) {
   if (dir == SWCL_SCROLL_UP)
     SWCL_LOG("Scroll UP");
   else
     SWCL_LOG("Scroll DOWN");
 }
 
-void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
-                               SWCLButtonState state) {
-  int id = swcl_window_get_id(win);
-  int width = swcl_window_get_width(win);
-  int height = swcl_window_get_height(win);
+void mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
+                          SWCLButtonState state) {
+  int id = win->id;
+  int width = win->width;
+  int height = win->height;
 
   SWCL_LOG("Button pressed: id=%d, key=%d, state=%d, "
            "x=%d, y=%d",
@@ -60,7 +58,7 @@ void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
 
   // Handle window resize
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED) {
-    uint8_t b = 10; // Border
+    uint8_t b = 5; // Border size
     if (swcl_cursor_pos.x < b && swcl_cursor_pos.y < b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP_LEFT);
     else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y < b)
@@ -86,8 +84,8 @@ void test_mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
   }
 }
 
-void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
-                 uint32_t serial) {
+void kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
+            uint32_t serial) {
   SWCL_LOG("Key: keycode=%d, state=%d, serial=%d", key, state, serial);
 
   // Quit when Esc released
@@ -96,7 +94,7 @@ void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
   }
 }
 
-// void test_kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
+// void kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
 //                      uint32_t mods_latched, uint32_t mods_locked,
 //                      uint32_t group, uint32_t serial) {
 //   SWCL_LOG("Key: mods_depressed=%d, mods_latched=%d, "
@@ -106,26 +104,12 @@ void test_kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
 
 int main() {
   SWCLConfig swcl_cfg = {
-      "io.github.mrvladus.Test",
-      test_pointer_enter,
-      test_pointer_leave,
-      test_pointer_motion,
-      test_mouse_button_pressed,
-      test_scroll,
-      test_kb_key,
+      "io.github.mrvladus.Test", pointer_enter, pointer_leave, pointer_motion,
+      mouse_button_pressed,      scroll,        kb_key,
   };
   swcl_init(&swcl_cfg);
-  SWCLWindowConfig cfg = {
-      .title = "Test",
-      .height = 700,
-      .width = 1000,
-      .min_height = 100,
-      .min_width = 100,
-      // .maximized = true,
-      // .fullscreen = true,
-      .on_draw_cb = test_draw,
-  };
-  SWCLWindow *win = swcl_window_new(cfg);
+  SWCLWindow *win =
+      swcl_window_new("Example Window", 800, 600, 100, 100, false, false, draw);
   swcl_run();
   return 0;
 }

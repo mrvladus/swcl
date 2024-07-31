@@ -113,23 +113,45 @@ typedef enum {
   SWCL_WINDOW_EDGE_BOTTOM_RIGHT = 10,
 } SWCLWindowEdge;
 
+// Ancor position of the window. Can be used only with compositors that support
+// wlr_layer_shell protocol, e. g. hyprland, kwin, sway.
+// If compositor not supported - does nothing.
 typedef enum {
-  SWCL_WINDOW_FLAG_MAXIMIZED = 0x1,
-  SWCL_WINDOW_FLAG_FULLSCREEN = 0x2,
-} SWCLWindowFlags;
+  SWCL_WINDOW_ANCOR_TOP = 0,
+  SWCL_WINDOW_ANCOR_BOTTOM = 1,
+  SWCL_WINDOW_ANCOR_LEFT = 2,
+  SWCL_WINDOW_ANCOR_RIGHT = 3,
+  SWCL_WINDOW_ANCOR_CENTER = 4,
+} SWCLWindowAncor;
 
 // ---------- STRUCTS ---------- //
 
+// Toplevel window object
 typedef struct SWCLWindow SWCLWindow;
+struct SWCLWindow {
+  // Read-Only properties
+  int id;
+  char *title;
+  uint32_t width;
+  uint32_t height;
+  uint32_t min_width;
+  uint32_t min_height;
+  bool maximized;
+  bool fullscreen;
 
-typedef struct SWCLCursor {
-  struct wl_shm *wl_shm;
-  struct wl_buffer *wl_buffer;
+  // Draw function
+  void (*on_draw_cb)(SWCLWindow *win);
+
+  // Wayland elements
   struct wl_surface *wl_surface;
-  struct wl_cursor_theme *wl_cursor_theme;
-  struct wl_cursor_image *wl_cursor_image;
-  struct wl_cursor *wl_cursor;
-} SWCLCursor;
+  struct wl_callback *wl_callback;
+  struct xdg_surface *xdg_surface;
+  struct xdg_toplevel *xdg_toplevel;
+
+  // EGL
+  struct wl_egl_window *egl_window;
+  EGLSurface egl_surface;
+};
 
 // SWCL application configuration.
 // Create before initializing.
@@ -198,96 +220,42 @@ void swcl_quit();
 
 // ---------- CURSOR ---------- //
 
+// Set cursor image with given name and size.
+// Name can be one of those:
+// "left_ptr" - default cursor
+// "top_side" - resize top side
+// "bottom_side" - resize bottom side
+// "left_side" - resize left side
+// "right_side" - resize right side
+// "top_left_corner" - resize top left corner
+// "top_right_corner" - resize top right corner
+// "bottom_left_corner" - resize bottom left corner
+// "bottom_right_corner" - resize bottom right corner
 void swcl_set_cursor(const char *name, uint8_t size);
 
 // ---------- WINDOW ---------- //
-
-// Toplevel window object
-struct SWCLWindow {
-  // Props
-  int id;
-  char *title;
-  uint32_t width;
-  uint32_t height;
-  uint32_t min_width;
-  uint32_t min_height;
-  bool maximized;
-  bool fullscreen;
-
-  // Draw function
-  void (*on_draw_cb)(SWCLWindow *win);
-
-  // Wayland elements
-  struct wl_surface *wl_surface;
-  struct wl_callback *wl_callback;
-  struct xdg_surface *xdg_surface;
-  struct xdg_toplevel *xdg_toplevel;
-
-  SWCLCursor cursor;
-
-  // EGL
-  struct wl_egl_window *egl_window;
-  EGLSurface egl_surface;
-};
-
-typedef struct {
-  // Properties
-  char *title;
-  uint32_t width;
-  uint32_t height;
-  uint32_t min_width;
-  uint32_t min_height;
-  bool maximized;
-  bool fullscreen;
-
-  // Draw callback
-  void (*on_draw_cb)(SWCLWindow *win);
-} SWCLWindowConfig;
 
 // Create new window.
 // This function takes care of creating native wayland window with stuff like
 // wl_surface, xdg_surface, xdg_toplevel and putting egl_window with OpenGL
 // context into it.
-SWCLWindow *swcl_window_new(SWCLWindowConfig cfg);
+SWCLWindow *swcl_window_new(char *title, uint16_t width, uint16_t height,
+                            uint16_t min_width, uint16_t min_height,
+                            bool maximized, bool fullscreen,
+                            void (*draw_func)(SWCLWindow *win));
 
-// Tells compositor to begin native drag operation. With this window can be
-// snapped to the sides if comositor allows it. This function is useful for
-// implementing Client-Side Decorations (CSD).
+// Tells compositor to begin native drag operation. With this, window can be
+// snapped to the sides of the screen if comositor allows it. This function is
+// useful for implementing Client-Side Decorations (CSD).
 void swcl_window_drag(SWCLWindow *win);
 
-// Tells compositor to begin native resize operation. With this window can be
+// Tells compositor to begin native resize operation. With this, window can be
 // resized if comositor allows it.
 // This function is useful for implementing Client-Side Decorations (CSD).
 void swcl_window_resize(SWCLWindow *win, SWCLWindowEdge edge);
 
 // Swap OpenGL buffer for rendered frame
 void swcl_window_swap_buffers(SWCLWindow *win);
-
-// Get window properties
-
-// ID property
-int swcl_window_get_id(SWCLWindow *win);
-
-// Title property
-char *swcl_window_get_title(SWCLWindow *win);
-
-// Width property
-int swcl_window_get_width(SWCLWindow *win);
-
-// Height property
-int swcl_window_get_height(SWCLWindow *win);
-
-// Minimum width property
-int swcl_window_get_min_width(SWCLWindow *win);
-
-// Minimum height property
-int swcl_window_get_min_height(SWCLWindow *win);
-
-// Maximized state property
-bool swcl_window_get_maximized(SWCLWindow *win);
-
-// Fulscreen state property
-bool swcl_window_get_fullscreen(SWCLWindow *win);
 
 // Set window properties
 
@@ -305,9 +273,6 @@ void swcl_window_set_maximized(SWCLWindow *win, bool maximized);
 
 // Set window fullscreen state
 void swcl_window_set_fullscreen(SWCLWindow *win, bool maximized);
-
-// Set cursor image from name
-void swcl_window_set_cursor(SWCLWindow *win, const char *name, uint32_t serial);
 
 // ---------- DRAWING ---------- //
 

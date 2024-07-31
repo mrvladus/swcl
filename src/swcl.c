@@ -20,9 +20,10 @@ struct wl_pointer *swcl_wl_pointer;
 struct wl_keyboard *swcl_wl_keyboard;
 struct xdg_wm_base *swcl_xdg_wm_base;
 
-uint32_t pointer_last_serial;
-uint32_t mouse_btn_last_serial;
-uint32_t keyboard_btn_last_serial;
+// Serials for events
+static uint32_t pointer_last_serial;
+static uint32_t mouse_btn_last_serial;
+static uint32_t keyboard_btn_last_serial;
 
 // EGL
 EGLConfig swcl_egl_config;
@@ -38,13 +39,13 @@ SWCLArray swcl_windows;
 SWCLWindow *current_window;
 
 // Cursor
-struct wl_buffer *swcl_wl_cursor_buffer;
-struct wl_cursor *swcl_wl_cursor;
-struct wl_cursor_theme *swcl_wl_cursor_theme;
-struct wl_cursor_image *swcl_wl_cursor_image;
-struct wl_shm *swcl_wl_cursor_shm;
-struct wl_surface *swcl_wl_cursor_surface;
-char *swcl_current_cursor_name;
+static struct wl_buffer *swcl_wl_cursor_buffer;
+static struct wl_cursor *swcl_wl_cursor;
+static struct wl_cursor_theme *swcl_wl_cursor_theme;
+static struct wl_cursor_image *swcl_wl_cursor_image;
+static struct wl_shm *swcl_wl_cursor_shm;
+static struct wl_surface *swcl_wl_cursor_surface;
+static char *swcl_current_cursor_name;
 
 // --------------------------------- //
 //              DRAWING              //
@@ -53,22 +54,6 @@ char *swcl_current_cursor_name;
 void swcl_clear_background(float r, float g, float b, float a) {
   glClearColor(r, g, b, a);
   glClear(GL_COLOR_BUFFER_BIT);
-}
-
-// --------------------------------- //
-//              CURSOR               //
-// --------------------------------- //
-
-SWCLCursor swcl_cursor_new(const char *name) {
-  SWCLCursor cur;
-  cur.wl_cursor_theme = wl_cursor_theme_load(NULL, 24, cur.wl_shm);
-  cur.wl_cursor = wl_cursor_theme_get_cursor(cur.wl_cursor_theme, name);
-  cur.wl_cursor_image = cur.wl_cursor->images[0];
-  cur.wl_buffer = wl_cursor_image_get_buffer(cur.wl_cursor_image);
-  cur.wl_surface = wl_compositor_create_surface(swcl_wl_compositor);
-  wl_surface_attach(cur.wl_surface, cur.wl_buffer, 0, 0);
-  wl_surface_commit(cur.wl_surface);
-  return cur;
 }
 
 // --------------------------------- //
@@ -85,21 +70,21 @@ static void on_xdg_toplevel_configure(void *data, struct xdg_toplevel *toplevel,
   if (width == 0 || height == 0)
     return;
   SWCL_LOG_DEBUG("xdg_toplevel configure. width=%d, height=%d", width, height);
-  SWCLWindow *win = data;
 
   // Pointer to iterate over the states
-  uint32_t *state;
+  // uint32_t *state;
 
   // Loop over the states array
-  wl_array_for_each(state, states) {
-    switch (*state) {
-    case XDG_TOPLEVEL_STATE_MAXIMIZED:
-      SWCL_LOG_DEBUG("State: Maximized");
-      break;
-    }
-  }
+  // wl_array_for_each(state, states) {
+  //   switch (*state) {
+  //   case XDG_TOPLEVEL_STATE_MAXIMIZED:
+  //     SWCL_LOG_DEBUG("State: Maximized");
+  //     break;
+  //   }
+  // }
 
   // Resize window if needed
+  SWCLWindow *win = data;
   if (win->egl_window) {
     win->width = (int)width;
     win->height = (int)height;
@@ -147,25 +132,25 @@ static void on_new_frame(void *data, struct wl_callback *cb, uint32_t cb_data) {
 
 // ---------- WINDOW ---------- //
 
-SWCLWindow *swcl_window_new(SWCLWindowConfig cfg) {
+SWCLWindow *swcl_window_new(char *title, uint16_t width, uint16_t height,
+                            uint16_t min_width, uint16_t min_height,
+                            bool maximized, bool fullscreen,
+                            void (*draw_func)(SWCLWindow *win)) {
+
   SWCLWindow *win = malloc(sizeof(*win));
 
   win->id = swcl_generate_id();
-  win->width = cfg.width;
-  win->height = cfg.height;
-  win->min_width = cfg.min_width;
-  win->min_height = cfg.min_height;
-  win->maximized = cfg.maximized;
-  win->fullscreen = cfg.fullscreen;
-  win->title = (char *)malloc(strlen(cfg.title) + 1);
-  strcpy(win->title, cfg.title);
-
-  win->on_draw_cb = cfg.on_draw_cb;
+  win->width = width;
+  win->height = height;
+  win->min_width = min_width;
+  win->min_height = min_height;
+  win->maximized = maximized;
+  win->fullscreen = fullscreen;
+  win->title = title;
+  win->on_draw_cb = draw_func;
 
   SWCL_LOG_DEBUG("Create new window with id: %d, width: %d, height: %d",
                  win->id, win->width, win->height);
-
-  // ---------- WAYLAND STUFF ---------- //
 
   // Get wl_surface
   win->wl_surface = wl_compositor_create_surface(swcl_wl_compositor);
@@ -203,8 +188,6 @@ SWCLWindow *swcl_window_new(SWCLWindowConfig cfg) {
     xdg_toplevel_add_listener(win->xdg_toplevel, &xdg_toplevel_listener, win);
     wl_display_roundtrip(swcl_wl_display);
   }
-
-  // ---------- EGL STUFF ---------- //
 
   // Create EGL window
   win->egl_window =
@@ -244,8 +227,6 @@ SWCLWindow *swcl_window_new(SWCLWindowConfig cfg) {
   else
     xdg_toplevel_unset_fullscreen(win->xdg_toplevel);
 
-  // Setup cursor
-
   swcl_array_append(&swcl_windows, win);
   SWCL_LOG_DEBUG("Created window with id=%d, at %p", win->id, win);
   return win;
@@ -269,14 +250,6 @@ void swcl_window_resize(SWCLWindow *win, SWCLWindowEdge edge) {
 void swcl_window_swap_buffers(SWCLWindow *win) {
   eglSwapBuffers(swcl_egl_display, win->egl_surface);
 }
-
-int swcl_window_get_id(SWCLWindow *win) { return win->id; }
-char *swcl_window_get_title(SWCLWindow *win) { return win->title; }
-int swcl_window_get_width(SWCLWindow *win) { return win->width; }
-int swcl_window_get_height(SWCLWindow *win) { return win->height; }
-int swcl_window_get_min_width(SWCLWindow *win) { return win->min_width; }
-int swcl_window_get_min_height(SWCLWindow *win) { return win->min_height; }
-bool swcl_window_get_maximized(SWCLWindow *win) { return win->maximized; }
 
 void swcl_window_set_title(SWCLWindow *win, char *title) {
   if (win->title)
