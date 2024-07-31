@@ -113,16 +113,15 @@ typedef enum {
   SWCL_WINDOW_EDGE_BOTTOM_RIGHT = 10,
 } SWCLWindowEdge;
 
-// Ancor position of the window. Can be used only with compositors that support
-// wlr_layer_shell protocol, e. g. hyprland, kwin, sway.
-// If compositor not supported - does nothing.
+// Ancor position of the window.
 typedef enum {
-  SWCL_WINDOW_ANCOR_TOP = 0,
-  SWCL_WINDOW_ANCOR_BOTTOM = 1,
-  SWCL_WINDOW_ANCOR_LEFT = 2,
-  SWCL_WINDOW_ANCOR_RIGHT = 3,
-  SWCL_WINDOW_ANCOR_CENTER = 4,
-} SWCLWindowAncor;
+  SWCL_ANCOR_NONE = 0,
+  SWCL_ANCOR_TOP = 1,
+  SWCL_ANCOR_BOTTOM = 2,
+  SWCL_ANCOR_LEFT = 3,
+  SWCL_ANCOR_RIGHT = 4,
+  SWCL_ANCOR_CENTER = 5,
+} SWCLAncor;
 
 // ---------- STRUCTS ---------- //
 
@@ -244,6 +243,12 @@ SWCLWindow *swcl_window_new(char *title, uint16_t width, uint16_t height,
                             bool maximized, bool fullscreen,
                             void (*draw_func)(SWCLWindow *win));
 
+// Set window ancor. Useful for bars, docks or run menus types of apps.
+// Can be used only with compositors that support
+// wlr_layer_shell protocol, e. g. hyprland, kwin, sway.
+// If compositor is not supported - does nothing.
+void swcl_window_ancor(SWCLAncor ancor);
+
 // Tells compositor to begin native drag operation. With this, window can be
 // snapped to the sides of the screen if comositor allows it. This function is
 // useful for implementing Client-Side Decorations (CSD).
@@ -263,7 +268,7 @@ void swcl_window_swap_buffers(SWCLWindow *win);
 void swcl_window_set_title(SWCLWindow *win, char *title);
 
 // Set window size
-void swcl_window_set_min_size(SWCLWindow *win, int width, int height);
+// void swcl_window_set_size(SWCLWindow *win, int width, int height);
 
 // Set window minimum size
 void swcl_window_set_min_size(SWCLWindow *win, int min_width, int min_height);

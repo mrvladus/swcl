@@ -1,4 +1,6 @@
 #include "swcl.h"
+
+#include "wlr-layer-shell-protocol.h"
 #include "xdg-shell-protocol.h"
 
 #include <GLES2/gl2.h>
@@ -19,6 +21,8 @@ struct wl_seat *swcl_wl_seat;
 struct wl_pointer *swcl_wl_pointer;
 struct wl_keyboard *swcl_wl_keyboard;
 struct xdg_wm_base *swcl_xdg_wm_base;
+struct zwlr_layer_shell_v1 *swcl_zwlr_layer_shell;
+struct zwlr_layer_surface_v1 *swcl_zwlr_layer_surface;
 
 // Serials for events
 static uint32_t pointer_last_serial;
@@ -252,10 +256,7 @@ void swcl_window_swap_buffers(SWCLWindow *win) {
 }
 
 void swcl_window_set_title(SWCLWindow *win, char *title) {
-  if (win->title)
-    free(win->title);
-  win->title = (char *)realloc(win->title, strlen(title) + 1);
-  strcpy(win->title, title);
+  win->title = title;
   xdg_toplevel_set_title(win->xdg_toplevel, title);
 }
 
@@ -273,6 +274,13 @@ void swcl_window_set_min_size(SWCLWindow *win, int min_width, int min_height) {
   win->min_width = min_width;
   win->min_height = min_height;
   xdg_toplevel_set_min_size(win->xdg_toplevel, min_width, min_height);
+}
+
+void swcl_window_ancor(SWCLAncor ancor) {
+  if (!swcl_zwlr_layer_shell) {
+    SWCL_LOG("Compositor is not supporting wlr_layer_shell");
+    return;
+  }
 }
 
 // --------------------------------- //
@@ -454,6 +462,10 @@ static void on_wl_registry_global(void *data, struct wl_registry *registry,
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, wl_shm_interface.name) == 0) {
     swcl_wl_cursor_shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+  } else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
+    swcl_zwlr_layer_shell =
+        wl_registry_bind(registry, id, &zwlr_layer_shell_v1_interface, 1);
+    SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   }
 }
 
