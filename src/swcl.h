@@ -174,7 +174,7 @@ typedef struct {
                              SWCLButtonState state, uint32_t serial);
   void (*on_keyboard_mod_key_cb)(SWCLWindow *win, uint32_t mods_depressed,
                                  uint32_t mods_latched, uint32_t mods_locked,
-                                 uint32_t group, uint32_t serial);
+                                 uint32_t group);
 } SWCLConfig;
 
 // Position with x and y coordinates

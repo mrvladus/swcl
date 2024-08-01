@@ -94,18 +94,17 @@ void kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
   }
 }
 
-// void kb_mod_key(SWCLWindow *win, uint32_t mods_depressed,
-//                      uint32_t mods_latched, uint32_t mods_locked,
-//                      uint32_t group, uint32_t serial) {
-//   SWCL_LOG("Key: mods_depressed=%d, mods_latched=%d, "
-//            "mods_locked=%d,group=%d,serial=%d",
-//            mods_depressed, mods_latched, mods_locked, group, serial);
-// }
+void kb_mod_key(SWCLWindow *win, uint32_t mods_depressed, uint32_t mods_latched,
+                uint32_t mods_locked, uint32_t group) {
+  SWCL_LOG("Key: mods_depressed=%d, mods_latched=%d, "
+           "mods_locked=%d, group=%d",
+           mods_depressed, mods_latched, mods_locked, group);
+}
 
 int main() {
   SWCLConfig swcl_cfg = {
       "io.github.mrvladus.Test", pointer_enter, pointer_leave, pointer_motion,
-      mouse_button_pressed,      scroll,        kb_key,
+      mouse_button_pressed,      scroll,        kb_key,        kb_mod_key,
   };
   swcl_init(&swcl_cfg);
   SWCLWindow *win =

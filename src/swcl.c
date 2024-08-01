@@ -399,7 +399,7 @@ void on_wl_kb_mod(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
   SWCLConfig *cfg = data;
   if (cfg->on_keyboard_mod_key_cb)
     cfg->on_keyboard_mod_key_cb(current_window, mods_depressed, mods_latched,
-                                mods_locked, group, serial);
+                                mods_locked, group);
 }
 
 static struct wl_keyboard_listener wl_keyboard_listener = {
