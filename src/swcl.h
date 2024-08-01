@@ -15,10 +15,11 @@ extern "C" {
 
 // -------- MACROS -------- //
 
-// Logging
+// Log formatted message
 #define SWCL_LOG(format, ...)                                                  \
   fprintf(stderr, "SWCL: " format "\n", ##__VA_ARGS__)
 
+// Debug log formatted message
 #ifdef SWCL_ENABLE_DEBUG_LOGS
 #define SWCL_LOG_DEBUG(format, ...)                                            \
   fprintf(stdout, "SWCL DEBUG: " format "\n", ##__VA_ARGS__)
@@ -26,6 +27,11 @@ extern "C" {
 #define SWCL_LOG_DEBUG(format, ...) ((void)0)
 #endif
 
+// Not implemented message
+#define SWCL_NOT_IMPLEMENTED(func_name)                                        \
+  printf("SWCL FUNCTION IS NOT IMPLEMENTED: %s\n", func_name)
+
+// Exit program with message
 #define SWCL_PANIC(format, ...)                                                \
   do {                                                                         \
     fprintf(stderr, "SWCL PANIC: " format "\n", ##__VA_ARGS__);                \
@@ -248,6 +254,11 @@ SWCLWindow *swcl_window_new(char *title, uint16_t width, uint16_t height,
 // wlr_layer_shell protocol, e. g. hyprland, kwin, sway.
 // If compositor is not supported - does nothing.
 void swcl_window_ancor(SWCLAncor ancor);
+
+// Request server-side decorations (SSR) for the window.
+// Compositor must support xdg_decoration protocol.
+// Supported compositors: kwin, sway, hyprland.
+void swcl_window_request_ssr(SWCLWindow *win);
 
 // Tells compositor to begin native drag operation. With this, window can be
 // snapped to the sides of the screen if comositor allows it. This function is

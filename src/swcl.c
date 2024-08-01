@@ -277,10 +277,17 @@ void swcl_window_set_min_size(SWCLWindow *win, int min_width, int min_height) {
 }
 
 void swcl_window_ancor(SWCLAncor ancor) {
+  SWCL_NOT_IMPLEMENTED("swcl_window_ancor");
+  return;
   if (!swcl_zwlr_layer_shell) {
     SWCL_LOG("Compositor is not supporting wlr_layer_shell");
     return;
   }
+}
+
+void swcl_window_request_ssr(SWCLWindow *win) {
+  SWCL_NOT_IMPLEMENTED("swcl_window_request_ssr");
+  return;
 }
 
 // --------------------------------- //

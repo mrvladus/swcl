@@ -111,6 +111,7 @@ int main() {
   SWCLWindow *win =
       swcl_window_new("Example Window", 800, 600, 100, 100, false, false, draw);
   swcl_window_ancor(SWCL_ANCOR_NONE);
+  swcl_window_request_ssr(win);
   swcl_run();
   return 0;
 }
