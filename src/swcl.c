@@ -3,9 +3,11 @@
 #include "wlr-layer-shell-protocol.h"
 #include "xdg-shell-protocol.h"
 
-#include <GLES2/gl2.h>
+#include <GL/gl.h>
 #include <wayland-cursor.h>
-#include <wayland-egl-core.h>
+#include <wayland-egl.h>
+
+#include <EGL/egl.h>
 
 #include <string.h>
 
@@ -50,15 +52,6 @@ static struct wl_cursor_image *swcl_wl_cursor_image;
 static struct wl_shm *swcl_wl_cursor_shm;
 static struct wl_surface *swcl_wl_cursor_surface;
 static char *swcl_current_cursor_name;
-
-// --------------------------------- //
-//              DRAWING              //
-// --------------------------------- //
-
-void swcl_clear_background(float r, float g, float b, float a) {
-  glClearColor(r, g, b, a);
-  glClear(GL_COLOR_BUFFER_BIT);
-}
 
 // --------------------------------- //
 //               WINDOW              //
@@ -207,9 +200,9 @@ SWCLWindow *swcl_window_new(char *title, uint16_t width, uint16_t height,
     SWCL_LOG_DEBUG("Created EGL surface");
 
   // Enable multisampling for smoothing
-  // glEnable(GL_MULTISAMPLE);
-  // glEnable(GL_BLEND);
-  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_MULTISAMPLE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   swcl_window_make_current(win);
   win->on_draw_cb(win);
@@ -528,8 +521,8 @@ bool swcl_init(SWCLConfig *cfg) {
     SWCL_LOG_DEBUG("Initialized EGL");
 
   // Bind OpenGL ES API to EGL
-  if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-    SWCL_LOG("Failed to bind OpenGL ES to EGL");
+  if (eglBindAPI(EGL_OPENGL_API) == EGL_FALSE) {
+    SWCL_LOG("Failed to bind OpenGL to EGL");
     return false;
   } else
     SWCL_LOG_DEBUG("Binded OpenGL to EGL");
@@ -545,7 +538,7 @@ bool swcl_init(SWCLConfig *cfg) {
                            EGL_ALPHA_SIZE,
                            8,
                            EGL_RENDERABLE_TYPE,
-                           EGL_OPENGL_ES2_BIT,
+                           EGL_OPENGL_BIT,
                            EGL_SAMPLE_BUFFERS,
                            1, // Enable multi-sampling
                            EGL_SAMPLES,

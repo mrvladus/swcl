@@ -1,5 +1,5 @@
 CC=gcc
-CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL
+CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL
 SOURCES=src/*.c
 
 
@@ -24,9 +24,9 @@ build-debug:
 	@echo "Done"
 
 run: build-debug
-	@$(CC) examples/events.c -o examples/events -Llib -lswcl $(CLIBS)
-	@./examples/events
-	@rm -f examples/events
+	@$(CC) examples/rounded-corners.c -o examples/example -Llib -lswcl $(CLIBS)
+	@./examples/example
+	@rm -f examples/example
 
 regenerate-protocols:
 	@echo "Regenerating Wayland Protocols files"

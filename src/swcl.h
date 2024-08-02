@@ -290,11 +290,6 @@ void swcl_window_set_maximized(SWCLWindow *win, bool maximized);
 // Set window fullscreen state
 void swcl_window_set_fullscreen(SWCLWindow *win, bool maximized);
 
-// ---------- DRAWING ---------- //
-
-// Clear window with RGBA color
-void swcl_clear_background(float r, float g, float b, float a);
-
 #ifdef __cplusplus
 }
 #endif
