@@ -1,6 +1,5 @@
 #include "../src/swcl.h"
 #include <GL/gl.h>
-#include <GL/glext.h>
 #include <stdint.h>
 
 void draw(SWCLWindow *win) {
@@ -21,23 +20,23 @@ void pointer_motion(SWCLWindow *win, int x, int y) {
   static uint8_t border = 5;
 
   if (x < border && y < border)
-    swcl_set_cursor("top_left_corner", 16);
+    swcl_application_set_cursor(win->app, "top_left_corner", 16);
   else if (x > win->width - border && y < border)
-    swcl_set_cursor("top_right_corner", 16);
+    swcl_application_set_cursor(win->app, "top_right_corner", 16);
   else if (x < border && y > win->height - border)
-    swcl_set_cursor("bottom_left_corner", 16);
+    swcl_application_set_cursor(win->app, "bottom_left_corner", 16);
   else if (x > win->width - border && y > win->height - border)
-    swcl_set_cursor("bottom_right_corner", 16);
+    swcl_application_set_cursor(win->app, "bottom_right_corner", 16);
   else if (y < border)
-    swcl_set_cursor("top_side", 16);
+    swcl_application_set_cursor(win->app, "top_side", 16);
   else if (y > win->height - border)
-    swcl_set_cursor("bottom_side", 16);
+    swcl_application_set_cursor(win->app, "bottom_side", 16);
   else if (x < border)
-    swcl_set_cursor("left_side", 16);
+    swcl_application_set_cursor(win->app, "left_side", 16);
   else if (x > win->width - border)
-    swcl_set_cursor("right_side", 16);
+    swcl_application_set_cursor(win->app, "right_side", 16);
   else
-    swcl_set_cursor("left_ptr", 16);
+    swcl_application_set_cursor(win->app, "left_ptr", 16);
 
   SWCL_LOG("Pointer motion: id=%d, x=%d, y=%d", win->id, x, y);
 }
@@ -57,43 +56,43 @@ void mouse_button_pressed(SWCLWindow *win, SWCLMouseButton button,
 
   SWCL_LOG("Button pressed: id=%d, key=%d, state=%d, "
            "x=%d, y=%d",
-           id, button, state, swcl_cursor_pos.x, swcl_cursor_pos.y);
+           id, button, state, win->app->cursor_pos.x, win->app->cursor_pos.y);
 
   // Handle window resize
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED) {
     uint8_t b = 5; // Border size
-    if (swcl_cursor_pos.x < b && swcl_cursor_pos.y < b)
+    if (win->app->cursor_pos.x < b && win->app->cursor_pos.y < b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP_LEFT);
-    else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y < b)
+    else if (win->app->cursor_pos.x > width - b && win->app->cursor_pos.y < b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP_RIGHT);
-    else if (swcl_cursor_pos.x < 5 && swcl_cursor_pos.y > height - b)
+    else if (win->app->cursor_pos.x < 5 && win->app->cursor_pos.y > height - b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_BOTTOM_LEFT);
-    else if (swcl_cursor_pos.x > width - b && swcl_cursor_pos.y > height - b)
+    else if (win->app->cursor_pos.x > width - b &&
+             win->app->cursor_pos.y > height - b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_BOTTOM_RIGHT);
-    else if (swcl_cursor_pos.y < b)
+    else if (win->app->cursor_pos.y < b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_TOP);
-    else if (swcl_cursor_pos.y > height - b)
+    else if (win->app->cursor_pos.y > height - b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_BOTTOM);
-    else if (swcl_cursor_pos.x < b)
+    else if (win->app->cursor_pos.x < b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_LEFT);
-    else if (swcl_cursor_pos.x > width - b)
+    else if (win->app->cursor_pos.x > width - b)
       swcl_window_resize(win, SWCL_WINDOW_EDGE_RIGHT);
   }
 
   // Handle window drag
   if (button == SWCL_MOUSE_1 && state == SWCL_BUTTON_PRESSED &&
-      swcl_cursor_pos.y < 50 && swcl_cursor_pos.y > 5) {
+      win->app->cursor_pos.y < 50 && win->app->cursor_pos.y > 5) {
     swcl_window_drag(win);
   }
 }
 
-void kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state,
-            uint32_t serial) {
-  SWCL_LOG("Key: keycode=%d, state=%d, serial=%d", key, state, serial);
+void kb_key(SWCLWindow *win, uint32_t key, SWCLButtonState state) {
+  SWCL_LOG("Key: keycode=%d, state=%d", key, state);
 
   // Quit when Esc released
   if (key == 1 && state == 0) {
-    swcl_quit();
+    swcl_application_quit(win->app);
   }
 }
 
@@ -105,13 +104,13 @@ void kb_mod_key(SWCLWindow *win, uint32_t mods_depressed, uint32_t mods_latched,
 }
 
 int main() {
-  SWCLConfig swcl_cfg = {
+  SWCLConfig cfg = {
       "io.github.mrvladus.Test", pointer_enter, pointer_leave, pointer_motion,
       mouse_button_pressed,      scroll,        kb_key,        kb_mod_key,
   };
-  swcl_init(&swcl_cfg);
-  SWCLWindow *win =
-      swcl_window_new("Example Window", 800, 600, 100, 100, false, false, draw);
-  swcl_run();
+  SWCLApplication *app = swcl_application_new(&cfg);
+  SWCLWindow *win = swcl_window_new(app, "Example Window", 800, 600, 100, 100,
+                                    false, false, draw);
+  swcl_application_run(app);
   return 0;
 }
