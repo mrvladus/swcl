@@ -183,6 +183,36 @@ typedef struct {
   int y;
 } SWCLPoint;
 
+typedef struct {
+  // Properties
+  const char *app_id;
+  bool running;
+  SWCLArray windows;
+  SWCLPoint cursor_pos;
+  SWCLWindow *current_window;
+
+  struct wl_display *wl_display;
+  struct wl_registry *wl_registry;
+  struct wl_compositor *wl_compositor;
+  struct wl_seat *wl_seat;
+  struct wl_pointer *wl_pointer;
+  struct wl_keyboard *wl_keyboard;
+  struct xdg_wm_base *xdg_wm_base;
+
+  EGLConfig egl_config;
+  EGLDisplay egl_display;
+  EGLContext egl_context;
+
+  // Cursor
+  struct wl_buffer *wl_cursor_buffer;
+  struct wl_cursor *wl_cursor;
+  struct wl_cursor_theme *wl_cursor_theme;
+  struct wl_cursor_image *wl_cursor_image;
+  struct wl_shm *wl_cursor_shm;
+  struct wl_surface *wl_cursor_surface;
+  char *current_cursor_name;
+} SWCLApplication;
+
 // ---------- GLOBALS ---------- //
 
 // Wayland specific variables (Use directly only if you know what you doing)
@@ -237,6 +267,12 @@ void swcl_quit();
 // "bottom_left_corner" - resize bottom left corner
 // "bottom_right_corner" - resize bottom right corner
 void swcl_set_cursor(const char *name, uint8_t size);
+
+// ---------- APPLICATION ---------- //
+
+SWCLApplication swcl_application_new(SWCLConfig *cfg);
+void swcl_application_run(SWCLApplication *app);
+void swcl_application_quit(SWCLApplication *app);
 
 // ---------- WINDOW ---------- //
 

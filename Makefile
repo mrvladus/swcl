@@ -24,7 +24,7 @@ build-debug:
 	@echo "Done"
 
 run: build-debug
-	@$(CC) examples/rounded-corners.c -o examples/example -Llib -lswcl $(CLIBS)
+	@$(CC) examples/events.c -o examples/example -Llib -lswcl $(CLIBS)
 	@./examples/example
 	@rm -f examples/example
 

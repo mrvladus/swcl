@@ -1,9 +1,11 @@
 #include "../src/swcl.h"
-#include <cairo/cairo.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
 #include <stdint.h>
 
 void draw(SWCLWindow *win) {
-  swcl_clear_background(0, 0, 1, 1);
+  glClearColor(0, 0, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
   swcl_window_swap_buffers(win);
 }
 

@@ -4,6 +4,7 @@
 #include "xdg-shell-protocol.h"
 
 #include <GL/gl.h>
+#include <stdbool.h>
 #include <wayland-cursor.h>
 #include <wayland-egl.h>
 
@@ -473,10 +474,106 @@ static void on_wl_registry_global_remove(void *data,
                                          struct wl_registry *registry,
                                          uint32_t id) {}
 
-static struct wl_registry_listener wl_registry_listener = {
+static const struct wl_registry_listener wl_registry_listener = {
     .global = on_wl_registry_global,
     .global_remove = on_wl_registry_global_remove,
 };
+
+// ---------- APPLICATION ---------- //
+
+SWCLApplication swcl_application_new(SWCLConfig *cfg) {
+  SWCLApplication app;
+
+  app.app_id = cfg->app_id;
+  app.running = false;
+
+  app.wl_display = wl_display_connect(NULL);
+  if (!app.wl_display)
+    SWCL_PANIC("Failed to connect to wl_display");
+  else
+    SWCL_LOG_DEBUG("Connected to wl_display");
+
+  app.wl_registry = wl_display_get_registry(app.wl_display);
+  if (!app.wl_registry)
+    SWCL_PANIC("Failed to connect to wl_registry");
+  else
+    SWCL_LOG_DEBUG("Connected to wl_registry");
+
+  wl_registry_add_listener(app.wl_registry, &wl_registry_listener, cfg);
+  wl_display_roundtrip(app.wl_display);
+
+  // Get EGLDisplay
+  app.egl_display = eglGetDisplay(app.wl_display);
+  if (app.egl_display == EGL_NO_DISPLAY)
+    SWCL_PANIC("Failed to get EGLDisplay");
+  else
+    SWCL_LOG_DEBUG("Got EGLDisplay");
+
+  // Init EGL
+  EGLint major, minor;
+  if (!eglInitialize(app.egl_display, &major, &minor))
+    SWCL_PANIC("Failed to init EGL");
+  else
+    SWCL_LOG_DEBUG("Initialized EGL");
+
+  // Bind OpenGL ES API to EGL
+  // TODO: Make OpenGL API configurable
+  if (!eglBindAPI(EGL_OPENGL_API))
+    SWCL_PANIC("Failed to bind OpenGL to EGL");
+  else
+    SWCL_LOG_DEBUG("Binded OpenGL to EGL");
+
+  const EGLint config_attrs[] = {
+      EGL_SURFACE_TYPE,
+      EGL_WINDOW_BIT,
+      EGL_RED_SIZE,
+      8,
+      EGL_GREEN_SIZE,
+      8,
+      EGL_BLUE_SIZE,
+      8,
+      EGL_ALPHA_SIZE,
+      8,
+      EGL_RENDERABLE_TYPE,
+      EGL_OPENGL_BIT,
+      EGL_SAMPLE_BUFFERS,
+      1,
+      EGL_SAMPLES,
+      4,
+      EGL_NONE,
+  };
+
+  // Choose config
+  EGLint num;
+  if (eglChooseConfig(app.egl_display, config_attrs, &app.egl_config, 1,
+                      &num) == EGL_FALSE ||
+      num == 0) {
+    SWCL_PANIC("Failed to choose EGL config");
+  } else
+    SWCL_LOG_DEBUG("Chosen EGL config");
+
+  // Create EGL context
+  const EGLint context_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
+  app.egl_context = eglCreateContext(app.egl_display, app.egl_config,
+                                     EGL_NO_CONTEXT, context_attrs);
+  if (!app.egl_context) {
+    SWCL_PANIC("Failed to create EGL context");
+  } else
+    SWCL_LOG_DEBUG("Created EGL context");
+
+  app.windows = swcl_array_new(2);
+
+  return app;
+}
+
+void swcl_application_run(SWCLApplication *app) {
+  app->running = true;
+  while (app->running) {
+    wl_display_dispatch(app->wl_display);
+  }
+}
+
+void swcl_application_quit(SWCLApplication *app) { app->running = false; }
 
 // ---------- MAIN FUNCTIONS ---------- //
 
@@ -501,7 +598,12 @@ bool swcl_init(SWCLConfig *cfg) {
   } else
     SWCL_LOG_DEBUG("Connected to wl_registry");
 
-  wl_registry_add_listener(swcl_wl_registry, &wl_registry_listener, cfg);
+  wl_registry_add_listener(swcl_wl_registry,
+                           &(struct wl_registry_listener){
+                               on_wl_registry_global,
+                               on_wl_registry_global_remove,
+                           },
+                           cfg);
   wl_display_roundtrip(swcl_wl_display);
 
   // Get EGLDisplay
