@@ -1,6 +1,5 @@
 #include "../src/swcl.h"
 #include <GL/gl.h>
-#include <stdint.h>
 
 void draw(SWCLWindow *win) {
   glClearColor(0, 0, 1, 1);
@@ -105,11 +104,17 @@ void kb_mod_key(SWCLWindow *win, uint32_t mods_depressed, uint32_t mods_latched,
 
 int main() {
   SWCLConfig cfg = {
-      "io.github.mrvladus.Test", pointer_enter, pointer_leave, pointer_motion,
-      mouse_button_pressed,      scroll,        kb_key,        kb_mod_key,
+      .app_id = "io.github.mrvladus.Test",
+      .on_pointer_enter_cb = pointer_enter,
+      .on_pointer_leave_cb = pointer_leave,
+      .on_pointer_motion_cb = pointer_motion,
+      .on_mouse_button_cb = mouse_button_pressed,
+      .on_mouse_scroll_cb = scroll,
+      .on_keyboard_key_cb = kb_key,
+      .on_keyboard_mod_key_cb = kb_mod_key,
   };
   SWCLApplication *app = swcl_application_new(&cfg);
-  SWCLWindow *win = swcl_window_new(app, "Example Window", 800, 600, 100, 100,
+  SWCLWindow *win = swcl_window_new(app, "Window Events", 800, 600, 100, 100,
                                     false, false, draw);
   swcl_application_run(app);
   return 0;
