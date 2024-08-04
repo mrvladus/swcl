@@ -1,5 +1,5 @@
 CC=gcc
-CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL
+CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
 SOURCES=src/*.c
 
 
@@ -17,6 +17,7 @@ build-debug:
 	@echo "Building SWCL in debug mode"
 	@mkdir -p include lib
 	@cp src/swcl.h include/swcl.h
+	@cp src/swcl-shapes.h include/swcl-shapes.h
 	@$(CC) -c $(SOURCES) $(CLIBS) -DSWCL_ENABLE_DEBUG_LOGS
 	@ar rcs libswcl.a *.o
 	@mv libswcl.a lib/libswcl.a
@@ -24,7 +25,7 @@ build-debug:
 	@echo "Done"
 
 run: build-debug
-	@$(CC) examples/events.c -o examples/example -Llib -lswcl $(CLIBS)
+	@$(CC) examples/rounded-corners.c -o examples/example -Llib -lswcl $(CLIBS)
 	@./examples/example
 	@rm -f examples/example
 
