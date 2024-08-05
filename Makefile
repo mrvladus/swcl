@@ -26,6 +26,7 @@ build-debug:
 	@echo "Done"
 
 build-examples: build-debug
+	@rm -f examples/basic-window examples/csd examples/events
 	@$(CC) $(CFLAGS) examples/basic-window.c -o examples/basic-window -Llib -lswcl $(CLIBS)
 	@$(CC) $(CFLAGS) examples/csd.c -o examples/csd -Llib -lswcl $(CLIBS)
 	@$(CC) $(CFLAGS) examples/events.c -o examples/events -Llib -lswcl $(CLIBS)
