@@ -1,6 +1,6 @@
 #include "../src/swcl.h"
 
-#define WINDOW_CORNER_RADIUS 12
+#define WINDOW_CORNER_RADIUS 10
 #define TITLEBAR_HEIGHT 30
 #define BTN_RADIUS 10
 
