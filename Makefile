@@ -5,9 +5,8 @@ all: build
 
 build:
 	@echo "Building SWCL"
-	@mkdir -p include include/swcl lib
-	@cp src/swcl.h include/swcl/swcl.h
-	@cp src/swcl-shapes.h include/swcl/swcl-shapes.h
+	@mkdir -p include lib
+	@cp src/swcl.h include/swcl.h
 	@$(CC) $(CFLAGS) -O3 -c src/*.c
 	@ar rcs libswcl.a *.o
 	@mv libswcl.a lib/libswcl.a
@@ -16,9 +15,8 @@ build:
 
 build-debug:
 	@echo "Building SWCL in debug mode"
-	@mkdir -p include include/swcl lib
-	@cp src/swcl.h include/swcl/swcl.h
-	@cp src/swcl-shapes.h include/swcl/swcl-shapes.h
+	@mkdir -p include lib
+	@cp src/swcl.h include/swcl.h
 	@$(CC) $(CFLAGS) -c src/*.c -DSWCL_ENABLE_DEBUG_LOGS
 	@ar rcs libswcl.a *.o
 	@mv libswcl.a lib/libswcl.a

@@ -1,8 +1,6 @@
 #ifndef SWCL_H
 #define SWCL_H
 
-#include "wlr-layer-shell-protocol.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -236,6 +234,33 @@ struct SWCLApplication {
                                  uint32_t group);
 };
 
+// ---------- DRAWING-RELATED STRUCTS ---------- //
+
+// RGBA color. Values can be from 0 to 255.
+typedef struct {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t a;
+} SWCLColor;
+
+// Rectangle with top left corner position at 'x' and 'y',
+// width 'w' and height 'h'
+typedef struct {
+  int x;
+  int y;
+  int w;
+  int h;
+} SWCLRect;
+
+// Circle where 'cx' and 'cy' are coordinates of the center of the circle and
+// 'r' is the radius
+typedef struct {
+  int cx;
+  int cy;
+  int r;
+} SWCLCircle;
+
 // ---------- APPLICATION ---------- //
 
 // Initialize SWCL.
@@ -318,6 +343,20 @@ void swcl_window_minimize(SWCLWindow *win);
 
 // Set window fullscreen state
 void swcl_window_set_fullscreen(SWCLWindow *win, bool maximized);
+
+// ---------- DRAWING ---------- //
+
+// Clear buffer background
+void swcl_clear_background(SWCLColor color);
+
+// Draw rectangle with given color and dimentions.
+void swcl_draw_rect(SWCLColor color, SWCLRect rect);
+
+// Same as swcl_draw_rect, but with rounded corners
+void swcl_draw_rounded_rect(SWCLColor color, SWCLRect rect, int radius);
+
+// Draw circle
+void swcl_draw_circle(SWCLColor color, SWCLCircle circle);
 
 #ifdef __cplusplus
 }

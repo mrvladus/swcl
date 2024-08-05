@@ -1,4 +1,6 @@
 #include "swcl.h"
+
+#include "wlr-layer-shell-protocol.h"
 #include "xdg-shell-protocol.h"
 
 #include <GL/gl.h>

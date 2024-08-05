@@ -1,8 +1,6 @@
-#include "../src/swcl-shapes.h"
 #include "../src/swcl.h"
-#include <stdbool.h>
-#include <stdint.h>
 
+#define WINDOW_CORNER_RADIUS 12
 #define TITLEBAR_HEIGHT 30
 #define BTN_RADIUS 10
 
@@ -111,16 +109,19 @@ void pointer_motion(SWCLWindow *win, int x, int y) {
 void draw_window_bg(SWCLWindow *win) {
   swcl_clear_background((SWCLColor){0, 0, 0, 0});
   swcl_draw_rounded_rect((SWCLColor){255, 255, 255, 255},
-                         (SWCLRect){0, 0, win->width, win->height}, 12);
+                         (SWCLRect){0, 0, win->width, win->height},
+                         WINDOW_CORNER_RADIUS);
 }
 
 // Draw title bar with buttons
 void draw_title_bar(SWCLWindow *win) {
   // Draw background
   swcl_draw_rounded_rect((SWCLColor){230, 230, 230, 255},
-                         (SWCLRect){0, 0, win->width, TITLEBAR_HEIGHT}, 12);
+                         (SWCLRect){0, 0, win->width, TITLEBAR_HEIGHT},
+                         WINDOW_CORNER_RADIUS);
   swcl_draw_rect((SWCLColor){230, 230, 230, 255},
-                 (SWCLRect){0, 20, win->width, 10});
+                 (SWCLRect){0, TITLEBAR_HEIGHT - WINDOW_CORNER_RADIUS,
+                            win->width, WINDOW_CORNER_RADIUS});
   // Draw close button
   swcl_draw_circle((SWCLColor){208, 114, 119, 255},
                    (SWCLCircle){win->width - BTN_RADIUS * 2,
