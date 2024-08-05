@@ -1,23 +1,14 @@
 CC=clang
-CFLAGS=-Wall -Wextra
 CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
-SOURCES=src/*.c
 
 all: build
 
-check:
-	@[ -f /usr/include/wayland-client.h ] && echo "Found wayland-client.h" || echo "Not found wayland-client.h"
-	@[ -f /usr/include/wayland-cursor.h ] && echo "Found wayland-cursor.h" || echo "Not found wayland-cursor.h"
-	@[ -f /usr/include/wayland-egl.h ] && echo "Found wayland-egl.h" || echo "Not found wayland-egl.h"
-	@[ -f /usr/include/GL/gl.h ] && echo "Found GL/gl.h" || echo "Not found GL/gl.h"
-	@[ -f /usr/include/EGL/egl.h ] && echo "Found EGL/egl.h" || echo "Not found EGL/egl.h"
-
-build: check
+build:
 	@echo "Building SWCL"
 	@mkdir -p include include/swcl lib
 	@cp src/swcl.h include/swcl/swcl.h
 	@cp src/swcl-shapes.h include/swcl/swcl-shapes.h
-	@$(CC) -O3 -c $(SOURCES)
+	@$(CC) $(CFLAGS) -O3 -c src/*.c
 	@ar rcs libswcl.a *.o
 	@mv libswcl.a lib/libswcl.a
 	@rm -f *.o
@@ -28,18 +19,19 @@ build-debug:
 	@mkdir -p include include/swcl lib
 	@cp src/swcl.h include/swcl/swcl.h
 	@cp src/swcl-shapes.h include/swcl/swcl-shapes.h
-	@$(CC) -c $(SOURCES) -DSWCL_ENABLE_DEBUG_LOGS -g
+	@$(CC) $(CFLAGS) -c src/*.c -DSWCL_ENABLE_DEBUG_LOGS
 	@ar rcs libswcl.a *.o
 	@mv libswcl.a lib/libswcl.a
 	@rm -f *.o
 	@echo "Done"
 
-install: build
+build-examples: build-debug
+	@$(CC) $(CFLAGS) examples/basic-window.c -o examples/basic-window -Llib -lswcl $(CLIBS)
+	@$(CC) $(CFLAGS) examples/csd.c -o examples/csd -Llib -lswcl $(CLIBS)
+	@$(CC) $(CFLAGS) examples/events.c -o examples/events -Llib -lswcl $(CLIBS)
 
-run: build-debug
-	@$(CC) examples/csd.c -o examples/example -Llib -lswcl $(CLIBS)
-	@./examples/example
-	@rm -f examples/example
+run: build-examples
+	./examples/csd
 
 regenerate-protocols:
 	@echo "Regenerating Wayland Protocols files"
@@ -52,6 +44,6 @@ regenerate-protocols:
 	@echo "Done"
 
 clean:
-	@rm -rf *.o examples/example include lib
+	@rm -rf *.o examples/basic-window examples/csd examples/events include lib
 
-.PHONY: check prepare build run regenerate-protocols clean
+.PHONY: build run regenerate-protocols clean

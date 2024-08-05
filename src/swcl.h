@@ -2,6 +2,7 @@
 #define SWCL_H
 
 #include "wlr-layer-shell-protocol.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
