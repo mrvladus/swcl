@@ -312,6 +312,9 @@ void swcl_window_set_min_size(SWCLWindow *win, int min_width, int min_height);
 // Set window maximized state
 void swcl_window_set_maximized(SWCLWindow *win, bool maximized);
 
+// Set window minimized state
+void swcl_window_minimize(SWCLWindow *win);
+
 // Set window fullscreen state
 void swcl_window_set_fullscreen(SWCLWindow *win, bool maximized);
 

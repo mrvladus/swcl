@@ -26,21 +26,19 @@ static void on_xdg_toplevel_configure(void *data, struct xdg_toplevel *toplevel,
   if (width == 0 || height == 0)
     return;
   SWCL_LOG_DEBUG("xdg_toplevel configure. width=%d, height=%d", width, height);
-
-  // Pointer to iterate over the states
-  // uint32_t *state;
+  SWCLWindow *win = data;
 
   // Loop over the states array
-  // wl_array_for_each(state, states) {
-  //   switch (*state) {
-  //   case XDG_TOPLEVEL_STATE_MAXIMIZED:
-  //     SWCL_LOG_DEBUG("State: Maximized");
-  //     break;
-  //   }
-  // }
+  uint32_t *state;
+  wl_array_for_each(state, states) {
+    switch (*state) {
+    case XDG_TOPLEVEL_STATE_MAXIMIZED:
+      win->maximized = true;
+      break;
+    }
+  }
 
   // Resize window if needed
-  SWCLWindow *win = data;
   if (win->egl_window) {
     win->width = (int)width;
     win->height = (int)height;
@@ -224,6 +222,10 @@ void swcl_window_set_maximized(SWCLWindow *win, bool maximized) {
     xdg_toplevel_set_maximized(win->xdg_toplevel);
   else
     xdg_toplevel_unset_maximized(win->xdg_toplevel);
+}
+
+void swcl_window_minimize(SWCLWindow *win) {
+  xdg_toplevel_set_minimized(win->xdg_toplevel);
 }
 
 void swcl_window_set_min_size(SWCLWindow *win, int min_width, int min_height) {
