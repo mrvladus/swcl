@@ -300,7 +300,7 @@ void swcl_application_run(SWCLApplication *app) {
     wl_display_dispatch(app->wl_display);
   }
   // Cleanup
-  swcl_array_free(&app->windows);
+  swcl_array_free(app->windows);
   wl_display_disconnect(app->wl_display);
   free(app);
 }

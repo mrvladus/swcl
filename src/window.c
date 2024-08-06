@@ -27,16 +27,21 @@ static void on_xdg_toplevel_configure(void *data, struct xdg_toplevel *toplevel,
   uint32_t *state;
   wl_array_for_each(state, states) {
     switch (*state) {
+    // Set maximized state
     case XDG_TOPLEVEL_STATE_MAXIMIZED:
       win->maximized = true;
-      break;
+    // Set unmaximized state
+    case XDG_TOPLEVEL_STATE_ACTIVATED:
+      if (win->maximized && (win->width > width || win->height > height)) {
+        win->maximized = false;
+      }
     }
   }
 
   // Resize window if needed
-  if (win->egl_window) {
-    win->width = (int)width;
-    win->height = (int)height;
+  if (win->egl_window && win->width != width || win->height != height) {
+    win->width = width;
+    win->height = height;
     glViewport(0, 0, width, height);
     wl_egl_window_resize(win->egl_window, width, height, 0, 0);
   }

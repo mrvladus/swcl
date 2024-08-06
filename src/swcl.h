@@ -76,11 +76,10 @@ static inline void swcl_array_append(SWCLArray *array, void *item) {
 }
 
 // Destroy array
-static inline void swcl_array_free(SWCLArray *array) {
-  for (uint32_t i = 0; i < array->length; i++) {
-    free(&array[i]);
+static inline void swcl_array_free(SWCLArray array) {
+  for (uint32_t i = 0; i < array.length; i++) {
+    free(array.items[i]);
   }
-  free(array);
 }
 
 // ---------- ENUMS ---------- //
