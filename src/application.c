@@ -3,7 +3,9 @@
 #include "wlr-layer-shell-protocol.h"
 #include "xdg-shell-protocol.h"
 
+#include <EGL/egl.h>
 #include <GL/gl.h>
+#include <wayland-client-core.h>
 #include <wayland-cursor.h>
 
 #include <string.h>
@@ -297,6 +299,10 @@ void swcl_application_run(SWCLApplication *app) {
   while (app->running) {
     wl_display_dispatch(app->wl_display);
   }
+  // Cleanup
+  swcl_array_free(&app->windows);
+  wl_display_disconnect(app->wl_display);
+  free(app);
 }
 
 void swcl_application_quit(SWCLApplication *app) { app->running = false; }
