@@ -1,10 +1,11 @@
 #include "swcl.h"
 #include <GL/gl.h>
 
-// Setup coordinates system. If window size is not changed - do nothing.
+// Setup coordinates system with top left corner as 0. If window size is not
+// changed - do nothing.
 static void __swcl_set_orthographic_projection() {
-  static uint32_t width;
-  static uint32_t height;
+  uint32_t width;
+  uint32_t height;
   GLint viewport[4];
 
   glGetIntegerv(GL_VIEWPORT, viewport);

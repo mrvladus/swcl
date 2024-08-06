@@ -195,9 +195,11 @@ struct SWCLApplication {
   SWCLPoint cursor_pos;
   SWCLWindow *current_window;
 
+  // Serials of events
   uint32_t wl_pointer_serial;
   uint32_t wl_keyboard_serial;
 
+  // Wayland
   struct wl_display *wl_display;
   struct wl_registry *wl_registry;
   struct wl_compositor *wl_compositor;
@@ -258,7 +260,7 @@ typedef struct {
 typedef struct {
   int cx;
   int cy;
-  int r;
+  uint32_t r;
 } SWCLCircle;
 
 // ---------- APPLICATION ---------- //

@@ -18,7 +18,7 @@ static void on_xdg_wm_base_ping(void *data, struct xdg_wm_base *wm_base,
 static void on_wl_seat_name(void *data, struct wl_seat *seat,
                             const char *name) {}
 
-static struct xdg_wm_base_listener xdg_wm_base_listener = {
+static const struct xdg_wm_base_listener xdg_wm_base_listener = {
     .ping = on_xdg_wm_base_ping,
 };
 
@@ -76,7 +76,7 @@ static void on_wl_pointer_axis(void *data, struct wl_pointer *wl_pointer,
     app->on_mouse_scroll_cb(app->current_window, 1 ? value > 0 : 0);
 };
 
-static struct wl_pointer_listener wl_pointer_listener = {
+static const struct wl_pointer_listener wl_pointer_listener = {
     .enter = on_wl_pointer_enter,
     .leave = on_wl_pointer_leave,
     .motion = on_wl_pointer_motion,
@@ -113,7 +113,7 @@ void on_wl_kb_mod(void *data, struct wl_keyboard *wl_keyboard, uint32_t serial,
                                 mods_latched, mods_locked, group);
 }
 
-static struct wl_keyboard_listener wl_keyboard_listener = {
+static const struct wl_keyboard_listener wl_keyboard_listener = {
     .keymap = on_wl_kb_keymap,
     .enter = on_wl_kb_focus_enter_surface,
     .leave = on_wl_kb_focus_leave_surface,
@@ -150,7 +150,7 @@ static void on_wl_seat_capabilities(void *data, struct wl_seat *seat,
   }
 }
 
-static struct wl_seat_listener wl_seat_listener = {
+static const struct wl_seat_listener wl_seat_listener = {
     .capabilities = on_wl_seat_capabilities,
     .name = on_wl_seat_name,
 };

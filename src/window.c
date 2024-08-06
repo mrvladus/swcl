@@ -59,14 +59,14 @@ static void on_xdg_surface_configure(void *data, struct xdg_surface *surface,
   xdg_surface_ack_configure(surface, serial);
 }
 
-static struct xdg_surface_listener xdg_surface_listener = {
+static const struct xdg_surface_listener xdg_surface_listener = {
     .configure = on_xdg_surface_configure,
 };
 
 // -------- wl_callback events callback -------- //
 
 static void on_new_frame(void *data, struct wl_callback *cb, uint32_t cb_data);
-static struct wl_callback_listener wl_callback_listener = {
+static const struct wl_callback_listener wl_callback_listener = {
     .done = on_new_frame,
 };
 
