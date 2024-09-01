@@ -29,6 +29,10 @@ void swcl_clear_background(SWCLColor color) {
 
 // Draw rectangle with given color and dimentions.
 void swcl_draw_rect(SWCLColor color, SWCLRect rect) {
+  if (color.a < 255) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
   __swcl_set_orthographic_projection();
   glColor4ub(color.r, color.g, color.b, color.a);
   glBegin(GL_QUADS);
@@ -37,9 +41,15 @@ void swcl_draw_rect(SWCLColor color, SWCLRect rect) {
   glVertex2i(rect.x + rect.w, rect.y + rect.h);
   glVertex2i(rect.x, rect.y + rect.h);
   glEnd();
+  if (color.a < 255)
+    glDisable(GL_BLEND);
 }
 
 void swcl_draw_rounded_rect(SWCLColor color, SWCLRect rect, int radius) {
+  if (radius == 0) {
+    swcl_draw_rect(color, rect);
+    return;
+  }
   // Draw corner circles
   swcl_draw_circle(color,
                    (SWCLCircle){rect.x + radius, rect.y + radius, radius});
@@ -57,6 +67,10 @@ void swcl_draw_rounded_rect(SWCLColor color, SWCLRect rect, int radius) {
 }
 
 void swcl_draw_circle(SWCLColor color, SWCLCircle circle) {
+  if (color.a < 255) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
   __swcl_set_orthographic_projection();
   glColor4ub(color.r, color.g, color.b, color.a);
   glBegin(GL_POLYGON);
@@ -67,4 +81,6 @@ void swcl_draw_circle(SWCLColor color, SWCLCircle circle) {
     glVertex2d(circle.cx + x, circle.cy + y);
   }
   glEnd();
+  if (color.a < 255)
+    glDisable(GL_BLEND);
 }

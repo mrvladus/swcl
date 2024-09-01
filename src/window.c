@@ -162,12 +162,9 @@ SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, uint16_t width,
     SWCL_LOG_DEBUG("Created EGL surface");
 
   // Enable multisampling for smoothing
-  glEnable(GL_MULTISAMPLE);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  swcl_window_make_current(win);
-  win->on_draw_cb(win);
+  // glEnable(GL_MULTISAMPLE);
+  // glEnable(GL_BLEND);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Setup xdg_toplevel
   xdg_toplevel_set_app_id(win->xdg_toplevel, app->app_id);
@@ -189,6 +186,11 @@ SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, uint16_t width,
   swcl_array_append(&app->windows, win);
   SWCL_LOG_DEBUG("Created window with id=%d, at %p", win->id, win);
   return win;
+}
+
+void swcl_window_show(SWCLWindow *win) {
+  swcl_window_make_current(win);
+  win->on_draw_cb(win);
 }
 
 void swcl_window_make_current(SWCLWindow *win) {

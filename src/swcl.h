@@ -38,6 +38,8 @@ extern "C" {
     exit(1);                                                                   \
   } while (0)
 
+#define SWCL_ALLOC(T) (T *)malloc(sizeof(T))
+
 // ---------- UTILS ---------- //
 
 // Function to generate unique ID
@@ -130,11 +132,11 @@ typedef enum {
 
 // ---------- STRUCTS ---------- //
 
-typedef struct SWCLWindow SWCLWindow;
 typedef struct SWCLApplication SWCLApplication;
+typedef struct SWCLWindow SWCLWindow;
 
 // Toplevel window object
-struct SWCLWindow {
+typedef struct SWCLWindow {
   // Read-Only properties
   uint32_t id;
   char *title;
@@ -159,7 +161,7 @@ struct SWCLWindow {
   EGLSurface egl_surface;
 
   SWCLApplication *app;
-};
+} SWCLWindow;
 
 // SWCL application configuration.
 // Create before initializing.
@@ -248,17 +250,17 @@ typedef struct {
 // Rectangle with top left corner position at 'x' and 'y',
 // width 'w' and height 'h'
 typedef struct {
-  int x;
-  int y;
-  int w;
-  int h;
+  uint32_t x;
+  uint32_t y;
+  uint32_t w;
+  uint32_t h;
 } SWCLRect;
 
 // Circle where 'cx' and 'cy' are coordinates of the center of the circle and
 // 'r' is the radius
 typedef struct {
-  int cx;
-  int cy;
+  uint32_t cx;
+  uint32_t cy;
   uint32_t r;
 } SWCLCircle;
 
@@ -301,6 +303,9 @@ SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, uint16_t width,
                             bool fullscreen,
                             void (*draw_func)(SWCLWindow *win));
 
+// Start window rendering.
+void swcl_window_show(SWCLWindow *win);
+
 // Set window ancor. Useful for bars, docks or run menus types of apps.
 // Can be used only with compositors that support
 // wlr_layer_shell protocol, e. g. hyprland, kwin, sway.
@@ -311,6 +316,10 @@ void swcl_window_ancor(SWCLAncor ancor);
 // Compositor must support xdg_decoration protocol.
 // Supported compositors: kwin, sway, hyprland.
 void swcl_window_request_ssr(SWCLWindow *win);
+
+// Show compositor window menu. This function is
+// useful for implementing Client-Side Decorations (CSD).
+void swcl_window_show_menu(SWCLWindow *win);
 
 // Tells compositor to begin native drag operation. With this, window can be
 // snapped to the sides of the screen if comositor allows it. This function is

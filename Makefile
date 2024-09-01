@@ -28,9 +28,6 @@ build-examples: build-debug
 	@$(CC) $(CFLAGS) examples/csd.c -o examples/csd -Llib -lswcl $(CLIBS)
 	@$(CC) $(CFLAGS) examples/events.c -o examples/events -Llib -lswcl $(CLIBS)
 
-run: build-examples
-	./examples/csd
-
 regenerate-protocols:
 	@echo "Regenerating Wayland Protocols files"
 	@wayland-scanner client-header < /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml > src/xdg-shell-protocol.h

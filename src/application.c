@@ -285,8 +285,6 @@ SWCLApplication *swcl_application_new(SWCLConfig *cfg) {
   } else
     SWCL_LOG_DEBUG("Created EGL context");
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_MULTISAMPLE);
 
   app->windows = swcl_array_new(2);
