@@ -161,11 +161,6 @@ SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, uint16_t width,
   else
     SWCL_LOG_DEBUG("Created EGL surface");
 
-  // Enable multisampling for smoothing
-  // glEnable(GL_MULTISAMPLE);
-  // glEnable(GL_BLEND);
-  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
   // Setup xdg_toplevel
   xdg_toplevel_set_app_id(win->xdg_toplevel, app->app_id);
   if (win->title)
