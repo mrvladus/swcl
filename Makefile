@@ -1,27 +1,8 @@
 CC=clang
-CLIBS=-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
+CLIBS=
 
 all: build
 
-build:
-	@echo "Building SWCL"
-	@mkdir -p include lib
-	@cp src/swcl.h include/swcl.h
-	@$(CC) $(CFLAGS) -O3 -c src/*.c
-	@ar rcs libswcl.a *.o
-	@mv libswcl.a lib/libswcl.a
-	@rm -f *.o
-	@echo "Done"
-
-build-debug:
-	@echo "Building SWCL in debug mode"
-	@mkdir -p include lib
-	@cp src/swcl.h include/swcl.h
-	@$(CC) $(CFLAGS) -c src/*.c -DSWCL_ENABLE_DEBUG_LOGS
-	@ar rcs libswcl.a *.o
-	@mv libswcl.a lib/libswcl.a
-	@rm -f *.o
-	@echo "Done"
 
 build-examples: build-debug
 	@$(CC) $(CFLAGS) examples/basic-window.c -o examples/basic-window -Llib -lswcl $(CLIBS)

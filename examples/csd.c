@@ -1,4 +1,5 @@
-#include "../src/swcl.h"
+#define SWCL_IMPLEMENTATION
+#include "../swcl.h"
 
 #define WINDOW_CORNER_RADIUS 10
 #define TITLEBAR_HEIGHT 30
@@ -152,6 +153,7 @@ int main() {
   SWCLApplication *app = swcl_application_new(&cfg);
   SWCLWindow *win = swcl_window_new(app, "Client-Side Decorations", 800, 600,
                                     100, 100, false, false, draw);
+  swcl_window_show(win);
   swcl_application_run(app);
   return 0;
 }

@@ -1,4 +1,5 @@
-#include "../src/swcl.h"
+#define SWCL_IMPLEMENTATION
+#include "../swcl.h"
 #include <GL/gl.h>
 
 void draw(SWCLWindow *win) {
@@ -59,6 +60,7 @@ int main() {
   SWCLApplication *app = swcl_application_new(&cfg);
   SWCLWindow *win = swcl_window_new(app, "Window Events", 800, 600, 100, 100,
                                     false, false, draw);
+  swcl_window_show(win);
   swcl_application_run(app);
   return 0;
 }

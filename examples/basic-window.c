@@ -1,4 +1,5 @@
-#include "../src/swcl.h"
+#define SWCL_IMPLEMENTATION
+#include "../swcl.h"
 #include <GL/gl.h>
 
 // Drawing function that called each frame
@@ -18,6 +19,7 @@ int main() {
   // Create window
   SWCLWindow *win = swcl_window_new(app, "Basic Window", 800, 600, 100, 100,
                                     false, false, draw);
+  swcl_window_show(win);
   // Run application
   swcl_application_run(app);
   return 0;
