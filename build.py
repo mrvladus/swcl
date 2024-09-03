@@ -2,6 +2,20 @@
 
 import os
 import re
+import urllib.request
+import argparse
+
+CC = "gcc"
+CLIBS = "-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm"
+CFLAGS = f"{CC} -O3"
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Build script for SWCL')
+    parser.add_argument("-r", "--regenerate-protocols", action="store_true", help="Regenerate Wayland protocols files")
+    parser.add_argument("-e", "--build-examples", action="store_true",help="Build examples in 'examples' directory")
+    parser.add_argument("-c", "--clean", action="store_true",help="Cleanup build files")
+    return parser.parse_args()
+
 
 def remove_empty_lines_and_comments(src: str)->str:
     # Remove comments
@@ -14,6 +28,7 @@ def remove_empty_lines_and_comments(src: str)->str:
     return src
 
 def build_header():
+    print("Building 'swcl.h'")
     # Load files
     with open(os.path.join("src", "swcl.h"), "r") as f:
         swcl_h:str = f.read()
@@ -29,13 +44,41 @@ def build_header():
     # Save to file
     with open("swcl.h", "w") as f:
         f.write(swcl_h)
+    print("Done")
 
 def build_examples():
-    CLIBS = "-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm"
-    os.system(f"gcc -O3 examples/basic-window.c -o examples/basic-window {CLIBS} -DSWCL_ENABLE_DEBUG_LOGS")
-    os.system(f"gcc -O3 examples/csd.c -o examples/csd {CLIBS} -DSWCL_ENABLE_DEBUG_LOGS")
-    os.system(f"gcc -O3 examples/events.c -o examples/events {CLIBS} -DSWCL_ENABLE_DEBUG_LOGS")
+    print("Building examples")
+    examples = ["basic-window", "csd", "events"]
+    for example in examples:
+        print(f"Building {example}")
+        os.system(f"{CFLAGS} examples/{example}.c -o examples/{example} {CLIBS} -DSWCL_ENABLE_DEBUG_LOGS")
+    print("Done")
+
+def regenerate_protocols():
+    print("Generating protocols")
+    os.system("wayland-scanner client-header < /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml > src/xdg-shell-protocol.h")
+    os.system("wayland-scanner private-code < /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml > src/xdg-shell-protocol.c")
+    urllib.request.urlretrieve("https://gitlab.freedesktop.org/wlroots/wlr-protocols/-/raw/master/unstable/wlr-layer-shell-unstable-v1.xml", "wlr-layer-shell-unstable-v1.xml")
+    os.system("wayland-scanner client-header < wlr-layer-shell-unstable-v1.xml > src/wlr-layer-shell-protocol.h")
+    os.system("wayland-scanner private-code < wlr-layer-shell-unstable-v1.xml > src/wlr-layer-shell-protocol.c")
+    os.remove("wlr-layer-shell-unstable-v1.xml")
+    print("Done")
+
+def clean():
+    print("Running cleanup")
+    clean_files = ["examples/basic-window", "examples/csd", "examples/events"]
+    for file in clean_files:
+        try:
+            os.remove(file)
+        except:
+            pass
+    print("Done")
 
 if __name__ == "__main__":
-    build_header()
-    build_examples()
+    args = parse_args()
+    if args.build_examples:
+        build_examples()
+    elif args.clean:
+        clean()
+    else:
+        build_header()
