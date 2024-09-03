@@ -36,7 +36,7 @@ def build_header():
         xdg_shell_protocol_h = remove_empty_lines_and_comments(f.read())
     with open(os.path.join("src", "xdg-shell-protocol.c"), "r") as f:
         xdg_shell_protocol_c = remove_empty_lines_and_comments(f.read())
-    # Comment out dev defines
+    # Remove dev defines
     swcl_h = swcl_h.replace("\n#define SWCL_IMPLEMENTATION // DEV\n", "")
     # Insert headers and source files
     swcl_h = swcl_h.replace('#include "xdg-shell-protocol.h"', xdg_shell_protocol_h)

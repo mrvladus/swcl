@@ -1,3 +1,6 @@
+// Copyright 2024 Vlad Krupinskii <mrvladus@yandex.ru>
+// SPDX-License-Identifier: MIT
+
 // Compile flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
 
 #ifndef SWCL_H

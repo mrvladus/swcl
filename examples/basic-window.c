@@ -1,3 +1,6 @@
+// Copyright 2024 Vlad Krupinskii <mrvladus@yandex.ru>
+// SPDX-License-Identifier: MIT
+
 #define SWCL_IMPLEMENTATION
 #include "../swcl.h"
 #include <GL/gl.h>
