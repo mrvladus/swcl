@@ -1,6 +1,12 @@
 // Copyright 2024 Vlad Krupinskii <mrvladus@yandex.ru>
 // SPDX-License-Identifier: MIT
 
+// SWCL - Simple Wayland Client Library
+// Create Wayland clients easily.
+// This header-only library simplifies creating native Wayland window, receiving
+// mouse or keyboard events and helping with creation of Client-Side Decorations
+// (CSD).
+
 // Compile flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
 
 #ifndef SWCL_H

@@ -2,7 +2,7 @@
 
 Create Wayland clients easily.
 
-This library simplifies creating native Wayland window, receiving mouse or keyboard events and helping with creation of Client-Side Decorations (CSD).
+This header-only library simplifies creating native Wayland window, receiving mouse or keyboard events and helping with creation of Client-Side Decorations (CSD).
 
 In a few lines of code you will have a window with OpenGL context inside of it that you can use to create whatever you want:
 
@@ -12,7 +12,7 @@ In a few lines of code you will have a window with OpenGL context inside of it t
 
 You can also port your existing applications to support Wayland with this library.
 
-**SWCL** is written in **C** and it's just two files: `swcl.h` and a static library `libswcl.a`. You can put them directly in your project.
+**SWCL** is written in **C** and it's just one header file `swcl.h`. You can put it directly in your project.
 
 ## Tutorial
 
@@ -28,88 +28,56 @@ Then install Wayland development dependencies:
 
 For Fedora/RHEL based distros:
 
-```
-sudo dnf install gcc make wayland-devel mesa-libGLES-devel
+```sh
+sudo dnf install wayland-devel mesa-libGL-devel
 ```
 
 For Debian/Ubuntu based distros:
 
-```
-sudo apt install gcc make libwayland-dev libgles2-mesa-dev
-```
-
-### Building SWCL
-
-Enter `swcl` directory:
-
 ```sh
-cd swcl
-```
-
-Build it with:
-
-```sh
-make
-```
-
-It will create theese files:
-
-```
-swcl
-├── include
-│   └── swcl.h
-├── lib
-│   └── libswcl.a
-...
+sudo apt install libwayland-dev mesa-common-dev
 ```
 
 ### Creating your project
 
-Copy `include` and `lib` directories inside of your project. Then create `main.c` so your project directory looks like this:
+Copy `swcl.h` to your project. Then create `main.c` so your project directory looks like this:
 
 ```
 myproject
-├── include
-│   └── swcl.h
-├── lib
-│   └── libswcl.a
+│── swcl.h
 └── main.c
 ```
 
 Inside of the `main.c` file write this:
 
 ```c
-#include "include/swcl.h"
+// Because it's a header-only library - it contains functions declarations AND implementations
+// Add this line to include SWCL functions implementations
+// You need to add this line ONLY in ONE file
+#define SWCL_IMPLEMENTATION
+// Then include SWCL header
+#include "swcl.h"
 
-// Function that SWCL will be calling each frame
-void draw_window(SWCLWindow *win) {
-  // Clear background with opaque white color
-  swcl_clear_background(1, 1, 1, 1);
-
-  // Swap window buffer at the end of the frame render
+// Drawing function that called each frame
+void draw(SWCLWindow *win) {
+  // Draw white background
+  swcl_clear_background((SWCLColor){255, 255, 255, 255});
+  // Swap buffers
   swcl_window_swap_buffers(win);
 }
 
-int main(int argc, char const *argv[]) {
-  // Create application object
-  SWCLApplication *app = swcl_application_new("io.github.mrvladus.MyApp");
-
-  // Create window configuration
-  SWCLWindowConfig cfg = {
-      .title = "My First Wayland Window",
-      .height = 800,
-      .width = 1000,
-      .min_height = 100,
-      .min_width = 100,
-      .on_draw_cb = draw_window, // Pass draw_window function as 'on_draw' callback
-  };
-
-  // Create new window with configuration
-  SWCLWindow *win = swcl_window_new(app, cfg);
-
-  // Start application
+int main() {
+  // Create basic config
+  SWCLConfig cfg = {.app_id = "io.github.mrvladus.Test"};
+  // Create application
+  SWCLApplication *app = swcl_application_new(&cfg);
+  // Create window
+  SWCLWindow *win = swcl_window_new(app, "Basic Window", 800, 600, 100, 100,
+                                    false, false, draw);
+  // Render first frame
+  swcl_window_show(win);
+  // Run application
   swcl_application_run(app);
-
   return 0;
 }
 ```
@@ -117,13 +85,12 @@ int main(int argc, char const *argv[]) {
 Now compile it with this command:
 
 ```sh
-gcc main.c -o myapp -Llib -lswcl -lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL
+gcc main.c -o myapp -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
 ```
 
 - `gcc main.c` compiles your code
 - `-o myapp` outputs it to executable file `myapp`
-- `-Llib` tells compiler to look for libraries in `lib` directory
-- `-lswcl -lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL` links our program with theese libraries
+- `-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm` links our program with needed libraries
 
 And then run it with:
 
@@ -134,3 +101,45 @@ And then run it with:
 Congratulations! You've created your first Wayland window!
 
 Go to the examples directory to learn more.
+
+### Examples
+
+To build examples you need:
+
+- Clone this repo
+- Run `./build.py -e` inside it
+
+This will build examples inside `examples` directory.
+You can run them as any other binary.
+
+### Documentation
+
+See `swcl.h` for documentation. All of the functions and structs have comments. It's pretty simple.
+
+### Development
+
+TODO™
+
+### Donations
+
+If you like **SWCL** and want to support it, you can send your donations here:
+
+- BTC
+
+```
+14pPYfZohS61PyGyXJyiGQHDFai4JR2q9w
+```
+
+- USDT
+
+```
+TCQn85c3vrRR7yMAfJABZmCXBa7gQvUcX5
+```
+
+- TON
+
+```
+UQBrhmho9259KsNZ8wYx6y_eeOwdcAo9aroOTRWRtnmcUmdr
+```
+
+Thank you!
