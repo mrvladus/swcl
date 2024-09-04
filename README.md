@@ -116,6 +116,10 @@ You can run them as any other binary.
 
 See `swcl.h` for documentation. All of the functions and structs have comments. It's pretty simple.
 
+### Contributions
+
+All contributions are welcome!
+
 ### Development
 
 TODO™
