@@ -12,8 +12,8 @@ CFLAGS = f"{CC} -O3"
 def parse_args():
     parser = argparse.ArgumentParser(description='Build script for SWCL')
     parser.add_argument("-r", "--regenerate-protocols", action="store_true", help="Regenerate Wayland protocols files")
-    parser.add_argument("-e", "--build-examples", action="store_true",help="Build examples in 'examples' directory")
-    parser.add_argument("-c", "--clean", action="store_true",help="Cleanup build files")
+    parser.add_argument("-e", "--build-examples", action="store_true", help="Build examples in 'examples' directory")
+    parser.add_argument("-c", "--clean", action="store_true", help="Cleanup build files")
     return parser.parse_args()
 
 
