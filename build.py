@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
 import os
 import re
 import urllib.request
-import argparse
 
 CC = "gcc"
 CLIBS = "-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm"
@@ -70,9 +70,10 @@ def clean():
     for file in clean_files:
         try:
             os.remove(file)
-        except:
+        except Exception:
             pass
     print("Done")
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -80,5 +81,7 @@ if __name__ == "__main__":
         build_examples()
     elif args.clean:
         clean()
+    elif args.regenerate_protocols:
+        regenerate_protocols()
     else:
         build_header()
