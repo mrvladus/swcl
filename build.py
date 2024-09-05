@@ -17,7 +17,10 @@ def parse_args():
     return parser.parse_args()
 
 
-def remove_empty_lines_and_comments(src: str)->str:
+def cleanup_header(src: str)->str:
+    # Remove CPP guards
+    src = src.replace('#ifdef  __cplusplus\nextern "C" {\n#endif', "")
+    src = src.replace('#ifdef  __cplusplus\n}\n#endif', "")
     # Remove comments
     single_line_comment_pattern = r'//.*?$'
     multi_line_comment_pattern = r'/\*.*?\*/'
@@ -33,9 +36,9 @@ def build_header():
     with open(os.path.join("src", "swcl.h"), "r") as f:
         swcl_h:str = f.read()
     with open(os.path.join("src", "xdg-shell-protocol.h"), "r") as f:
-        xdg_shell_protocol_h = remove_empty_lines_and_comments(f.read())
+        xdg_shell_protocol_h = cleanup_header(f.read())
     with open(os.path.join("src", "xdg-shell-protocol.c"), "r") as f:
-        xdg_shell_protocol_c = remove_empty_lines_and_comments(f.read())
+        xdg_shell_protocol_c = cleanup_header(f.read())
     # Remove dev defines
     swcl_h = swcl_h.replace("\n#define SWCL_IMPLEMENTATION // DEV\n", "")
     # Insert headers and source files
