@@ -1,0 +1,6 @@
+CompileFlags:
+  Add:
+  - -x
+  - c
+  - -DSWCL_IMPLEMENTATION
+  - -Wno-macro-redefined
