@@ -275,7 +275,6 @@ struct SWCLApplication {
   const char *app_id;
   bool running;
   SWCLArray windows;
-  SWCLPoint cursor_pos;
   SWCLWindow *current_window;
 
   // Serials of events
@@ -303,6 +302,8 @@ struct SWCLApplication {
   struct wl_shm *wl_cursor_shm;
   struct wl_surface *wl_cursor_surface;
   char *current_cursor_name;
+  size_t cursor_pos_x;
+  size_t cursor_pos_y;
 
   // Callbacks
   void (*pointer_enter_cb)(SWCLWindow *win, size_t x, size_t y);
@@ -338,13 +339,13 @@ static void on_wl_pointer_enter(void *data, struct wl_pointer *pointer, uint32_t
                                 wl_fixed_t x, wl_fixed_t y) {
   SWCLApplication *app = (SWCLApplication *)data;
   app->wl_pointer_serial = serial;
-  app->cursor_pos.x = wl_fixed_to_int(x);
-  app->cursor_pos.y = wl_fixed_to_int(y);
+  app->cursor_pos_x = wl_fixed_to_int(x);
+  app->cursor_pos_y = wl_fixed_to_int(y);
   for (int i = 0; i < app->windows.length; i++) {
     SWCLWindow *win = (SWCLWindow *)app->windows.items[i];
     if (win->wl_surface == surface) {
       app->current_window = win;
-      if (app->pointer_enter_cb) app->pointer_enter_cb(app->current_window, app->cursor_pos.x, app->cursor_pos.y);
+      if (app->pointer_enter_cb) app->pointer_enter_cb(app->current_window, app->cursor_pos_x, app->cursor_pos_y);
     }
   }
 };
@@ -357,9 +358,9 @@ static void on_wl_pointer_leave(void *data, struct wl_pointer *pointer, uint32_t
 
 static void on_wl_pointer_motion(void *data, struct wl_pointer *pointer, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
   SWCLApplication *app = (SWCLApplication *)data;
-  app->cursor_pos.x = wl_fixed_to_int(x);
-  app->cursor_pos.y = wl_fixed_to_int(y);
-  if (app->pointer_motion_cb) app->pointer_motion_cb(app->current_window, app->cursor_pos.x, app->cursor_pos.y);
+  app->cursor_pos_x = wl_fixed_to_int(x);
+  app->cursor_pos_y = wl_fixed_to_int(y);
+  if (app->pointer_motion_cb) app->pointer_motion_cb(app->current_window, app->cursor_pos_x, app->cursor_pos_y);
 };
 
 static void on_wl_pointer_axis(void *data, struct wl_pointer *wl_pointer, uint32_t time, uint32_t axis,
