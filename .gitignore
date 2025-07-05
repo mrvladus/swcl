@@ -1,4 +1,0 @@
-include/
-lib/
-examples/*
-!examples/*.c
