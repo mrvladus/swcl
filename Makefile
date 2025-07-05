@@ -3,12 +3,12 @@ CC=gcc
 # Create single header file from source files
 swcl.h: src/swcl.h src/protocols/xdg-shell-protocol.c src/protocols/xdg-shell-protocol.h
 	@cp src/swcl.h swcl.h
-	# Insert xdg-shell-protocol.c
+	@# Insert xdg-shell-protocol.c
 	@$(CC) -fpreprocessed -dD -E -P src/protocols/xdg-shell-protocol.c > xdg-shell-protocol.c
 	@sed -i "/#include \"protocols\/xdg-shell-protocol.c\"/r xdg-shell-protocol.c" swcl.h
 	@sed -i "/#include \"protocols\/xdg-shell-protocol.c\"/d" swcl.h
 	@rm -f xdg-shell-protocol.c
-	# Insert xdg-shell-protocol.h
+	@# Insert xdg-shell-protocol.h
 	@$(CC) -fpreprocessed -dD -E -P src/protocols/xdg-shell-protocol.h > xdg-shell-protocol.h
 	@sed -i "/#include \"protocols\/xdg-shell-protocol.h\"/r xdg-shell-protocol.h" swcl.h
 	@sed -i "/#include \"protocols\/xdg-shell-protocol.h\"/d" swcl.h

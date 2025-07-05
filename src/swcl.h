@@ -4,7 +4,7 @@
 // SWCL - Simple Wayland Client Library
 // Create Wayland clients easily.
 // This header-only library simplifies creating native Wayland window, receiving
-// mouse and keyboard events, natively drag and resize.
+// mouse and keyboard events, natively drag and resize the window.
 
 // Linker flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
 
