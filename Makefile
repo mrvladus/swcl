@@ -17,7 +17,7 @@ regenerate-protocols:
 	wayland-scanner private-code < /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml > src/xdg-shell-protocol.c
 
 example: example.c swcl.h
-	@$(CC) example.c -o example -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL
+	@$(CC) example.c -o example -lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL
 
 clean:
 	rm -f example swcl.h xdg-shell-protocol.c xdg-shell-protocol.h

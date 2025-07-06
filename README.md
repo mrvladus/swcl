@@ -136,12 +136,12 @@ int main(int argc, char *argv[]) {
 Now compile it with this command:
 
 ```sh
-gcc main.c -o myapp -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
+gcc main.c -o myapp -lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL
 ```
 
 - `gcc main.c` compiles your code
 - `-o myapp` outputs it to executable file `myapp`
-- `-lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm` links our program with needed wayland and OpenGL libraries
+- `-lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL` links our program with needed wayland and OpenGL libraries
 
 And then run it with:
 

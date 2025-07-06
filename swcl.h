@@ -6,7 +6,7 @@
 // This header-only library simplifies creating native Wayland window, receiving
 // mouse and keyboard events, natively drag and resize the window.
 
-// Linker flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL -lm
+// Linker flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGLES -lEGL
 
 #ifndef SWCL_H
 #define SWCL_H
