@@ -18,7 +18,7 @@ You can also port your existing applications to support Wayland with this librar
 
 ### Setup
 
-Then install Wayland development dependencies:
+Install Wayland development dependencies:
 
 For Fedora/RHEL based distros:
 
