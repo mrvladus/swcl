@@ -14,7 +14,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <wayland-client-core.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -161,7 +160,6 @@ void swcl_window_set_fullscreen(SWCLWindow *win, bool fullscreen);
 
 #include <EGL/egl.h>
 #include <GL/gl.h>
-#include <wayland-client-protocol.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
 #include <wayland-egl.h>
