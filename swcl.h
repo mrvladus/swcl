@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <wayland-client-core.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -873,6 +874,7 @@ struct SWCLWindow {
   struct wl_surface *wl_surface;
   struct wl_callback *wl_callback;
   struct xdg_surface *xdg_surface;
+  bool xdg_surface_wait_for_configure;
   struct xdg_toplevel *xdg_toplevel;
 
   // EGL
@@ -881,12 +883,6 @@ struct SWCLWindow {
 
   SWCLApplication *app;
 };
-
-// Position with x and y coordinates
-typedef struct {
-  size_t x;
-  size_t y;
-} SWCLPoint;
 
 struct SWCLApplication {
   // Properties
@@ -937,6 +933,7 @@ struct SWCLApplication {
 // ---------- xdg_wm_base events callbacks ---------- //
 
 static void on_xdg_wm_base_ping(void *data, struct xdg_wm_base *wm_base, uint32_t serial) {
+  SWCL_LOG_DEBUG("xdg_wm_base %p pong", wm_base);
   xdg_wm_base_pong(wm_base, serial);
 }
 
@@ -1045,9 +1042,9 @@ static void on_wl_seat_capabilities(void *data, struct wl_seat *seat, uint32_t c
   if ((capability & WL_SEAT_CAPABILITY_KEYBOARD) && !app->wl_keyboard) {
     app->wl_keyboard = wl_seat_get_keyboard(seat);
     if (app->wl_keyboard) {
-      SWCL_LOG_DEBUG("Got keyboard");
       wl_keyboard_add_listener(app->wl_keyboard, &wl_keyboard_listener, app);
       wl_display_roundtrip(app->wl_display);
+      SWCL_LOG_DEBUG("Got keyboard");
     } else {
       SWCL_LOG_DEBUG("No keyboard found");
     }
@@ -1067,18 +1064,19 @@ static void on_wl_registry_global(void *data, struct wl_registry *registry, uint
                                   uint32_t version) {
   SWCLApplication *app = (SWCLApplication *)data;
   if (strcmp(interface, wl_compositor_interface.name) == 0) {
-    app->wl_compositor = (struct wl_compositor *)wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+    app->wl_compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-    app->xdg_wm_base = (struct xdg_wm_base *)wl_registry_bind(registry, id, &xdg_wm_base_interface, 2);
+    app->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
     xdg_wm_base_add_listener(app->xdg_wm_base, &xdg_wm_base_listener, NULL);
-    SWCL_LOG_DEBUG("Registered %s version %d", interface, 2);
+    SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-    app->wl_seat = (struct wl_seat *)wl_registry_bind(registry, id, &wl_seat_interface, 1);
+    app->wl_seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
     wl_seat_add_listener(app->wl_seat, &wl_seat_listener, app);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-    app->wl_cursor_shm = (struct wl_shm *)wl_registry_bind(registry, id, &wl_shm_interface, 1);
+    app->wl_cursor_shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+    SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   }
 }
 
@@ -1114,30 +1112,33 @@ swcl_application_new(const char *app_id, void (*pointer_enter_cb)(SWCLWindow *wi
   app->keyboard_key_cb = keyboard_key_cb;
   app->keyboard_mod_key_cb = keyboard_mod_key_cb;
 
+  // Get wl_display
   app->wl_display = wl_display_connect(NULL);
   if (!app->wl_display) SWCL_PANIC("Failed to connect to wl_display");
-  else SWCL_LOG_DEBUG("Connected to wl_display");
+  SWCL_LOG_DEBUG("Connected to wl_display %p", app->wl_display);
 
+  // Get wl_registry
   app->wl_registry = wl_display_get_registry(app->wl_display);
   if (!app->wl_registry) SWCL_PANIC("Failed to connect to wl_registry");
-  else SWCL_LOG_DEBUG("Connected to wl_registry");
-
+  SWCL_LOG_DEBUG("Connected to wl_registry %p", app->wl_registry);
   wl_registry_add_listener(app->wl_registry, &wl_registry_listener, app);
+  SWCL_LOG_DEBUG("Register interfaces for wl_registry %p", app->wl_registry);
   wl_display_roundtrip(app->wl_display);
 
   // Get EGLDisplay
+  SWCL_LOG_DEBUG("Initialize EGL");
   app->egl_display = eglGetDisplay(app->wl_display);
   if (app->egl_display == EGL_NO_DISPLAY) SWCL_PANIC("Failed to get EGLDisplay");
-  else SWCL_LOG_DEBUG("Got EGLDisplay");
+  SWCL_LOG_DEBUG("Got EGLDisplay %p", app->egl_display);
 
   // Init EGL
   EGLint major, minor;
   if (!eglInitialize(app->egl_display, &major, &minor)) SWCL_PANIC("Failed to init EGL");
-  else SWCL_LOG_DEBUG("Initialized EGL");
+  SWCL_LOG_DEBUG("Initialized EGL version %d.%d", major, minor);
 
   // Bind OpenGL ES API to EGL
-  if (!eglBindAPI(EGL_OPENGL_API)) SWCL_PANIC("Failed to bind OpenGL to EGL");
-  else SWCL_LOG_DEBUG("Binded OpenGL to EGL");
+  if (!eglBindAPI(EGL_OPENGL_ES_API)) SWCL_PANIC("Failed to bind OpenGLES to EGL");
+  SWCL_LOG_DEBUG("Binded OpenGLES to EGL");
 
   const EGLint config_attrs[] = {
       EGL_SURFACE_TYPE,
@@ -1151,37 +1152,37 @@ swcl_application_new(const char *app_id, void (*pointer_enter_cb)(SWCLWindow *wi
       EGL_ALPHA_SIZE,
       8,
       EGL_RENDERABLE_TYPE,
-      EGL_OPENGL_BIT,
+      EGL_OPENGL_ES2_BIT,
       EGL_SAMPLE_BUFFERS,
       1,
       EGL_SAMPLES,
-      4,
+      2,
       EGL_NONE,
   };
 
   // Choose config
   EGLint num;
-  if (eglChooseConfig(app->egl_display, config_attrs, &app->egl_config, 1, &num) == EGL_FALSE || num == 0) {
+  if (eglChooseConfig(app->egl_display, config_attrs, &app->egl_config, 1, &num) == EGL_FALSE || num == 0)
     SWCL_PANIC("Failed to choose EGL config");
-  } else SWCL_LOG_DEBUG("Chosen EGL config");
+  SWCL_LOG_DEBUG("Chosen EGL config");
 
   // Create EGL context
   const EGLint context_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
   app->egl_context = eglCreateContext(app->egl_display, app->egl_config, EGL_NO_CONTEXT, context_attrs);
-  if (!app->egl_context) {
-    SWCL_PANIC("Failed to create EGL context");
-  } else SWCL_LOG_DEBUG("Created EGL context");
+  if (!app->egl_context) SWCL_PANIC("Failed to create EGL context");
+  SWCL_LOG_DEBUG("Created EGL context %p", app->egl_context);
 
+  SWCL_LOG_DEBUG("Enable GL multisampling");
   glEnable(GL_MULTISAMPLE);
 
-  app->windows = swcl_array_new(2);
+  app->windows = swcl_array_new(1);
 
   return app;
 }
 
 void swcl_application_run(SWCLApplication *app) {
   app->running = true;
-  while (app->running) { wl_display_dispatch(app->wl_display); }
+  while (app->running) wl_display_dispatch(app->wl_display);
   // Cleanup
   swcl_array_free(app->windows);
   wl_display_disconnect(app->wl_display);
@@ -1241,6 +1242,7 @@ static void on_xdg_toplevel_configure(void *data, struct xdg_toplevel *toplevel,
     win->height = height;
     glViewport(0, 0, width, height);
     wl_egl_window_resize(win->egl_window, width, height, 0, 0);
+    wl_surface_commit(win->wl_surface);
   }
 }
 
@@ -1257,6 +1259,8 @@ static const struct xdg_toplevel_listener xdg_toplevel_listener = {
 // ---------- xdg_surface events callbacks ---------- //
 
 static void on_xdg_surface_configure(void *data, struct xdg_surface *surface, uint32_t serial) {
+  SWCL_LOG_DEBUG("Configure xdg-surface %p %d", surface, serial);
+  SWCLWindow *win = (SWCLWindow *)data;
   xdg_surface_ack_configure(surface, serial);
 }
 
@@ -1305,62 +1309,54 @@ SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, size_t width, siz
   win->on_draw_cb = draw_func;
   win->app = app;
 
-  SWCL_LOG_DEBUG("Create new window with id: %d, width: %d, height: %d", win->id, win->width, win->height);
+  SWCL_LOG_DEBUG("Create new window with id: %d", win->id);
 
   // Get wl_surface
   if (!app->wl_compositor) SWCL_PANIC("Failed to get wl_compositor");
 
   win->wl_surface = wl_compositor_create_surface(app->wl_compositor);
   if (!win->wl_surface) SWCL_PANIC("Failed to get wl_surface");
-  else SWCL_LOG_DEBUG("Got wl_surface");
-
-  // Get wl_callback for surface frame
-  win->wl_callback = wl_surface_frame(win->wl_surface);
-  if (!win->wl_callback) SWCL_PANIC("Failed to get wl_callback");
-  else {
-    SWCL_LOG_DEBUG("Got wl_callback");
-    wl_callback_add_listener(win->wl_callback, &wl_callback_listener, win);
-    wl_display_roundtrip(app->wl_display);
-  }
-
-  // Get xdg_surface
-  win->xdg_surface = xdg_wm_base_get_xdg_surface(app->xdg_wm_base, win->wl_surface);
-  if (!win->xdg_surface) SWCL_PANIC("Failed to get xdg_surface");
-  else {
-    SWCL_LOG_DEBUG("Got xdg_surface");
-    xdg_surface_add_listener(win->xdg_surface, &xdg_surface_listener, NULL);
-  }
-
-  // Get xdg_toplevel
-  win->xdg_toplevel = xdg_surface_get_toplevel(win->xdg_surface);
-  if (!win->xdg_toplevel) SWCL_PANIC("Failed to get xdg_toplevel");
-  else {
-    SWCL_LOG_DEBUG("Got xdg_toplevel");
-    xdg_toplevel_add_listener(win->xdg_toplevel, &xdg_toplevel_listener, win);
-    wl_display_roundtrip(app->wl_display);
-  }
+  SWCL_LOG_DEBUG("Created wl_surface %p", win->wl_surface);
 
   // Create EGL window
   win->egl_window = wl_egl_window_create(win->wl_surface, win->width, win->height);
+  if (!win->egl_window) SWCL_PANIC("Failed to create EGL window");
+  SWCL_LOG_DEBUG("Created egl_window %p", win->egl_window);
 
   // Create EGL surface
   win->egl_surface =
       eglCreateWindowSurface(app->egl_display, app->egl_config, (EGLNativeWindowType)win->egl_window, NULL);
-  if (win->egl_surface == EGL_NO_SURFACE) SWCL_PANIC("Failed to create EGL surface");
-  else SWCL_LOG_DEBUG("Created EGL surface");
+  if (!win->egl_surface) SWCL_PANIC("Failed to create EGL surface");
+  else SWCL_LOG_DEBUG("Created egl_surface %p", win->egl_surface);
+
+  // Get xdg_surface
+  win->xdg_surface = xdg_wm_base_get_xdg_surface(app->xdg_wm_base, win->wl_surface);
+  if (!win->xdg_surface) SWCL_PANIC("Failed to get xdg_surface");
+  SWCL_LOG_DEBUG("Created xdg_surface %p", win->xdg_surface);
+  xdg_surface_add_listener(win->xdg_surface, &xdg_surface_listener, win);
 
   // Setup xdg_toplevel
+  win->xdg_toplevel = xdg_surface_get_toplevel(win->xdg_surface);
+  if (!win->xdg_toplevel) SWCL_PANIC("Failed to get xdg_toplevel");
+  SWCL_LOG_DEBUG("Created xdg_toplevel %p", win->xdg_toplevel);
+  xdg_toplevel_add_listener(win->xdg_toplevel, &xdg_toplevel_listener, win);
   xdg_toplevel_set_app_id(win->xdg_toplevel, app->app_id);
-  // Set title
   if (win->title) xdg_toplevel_set_title(win->xdg_toplevel, win->title);
-  // Set min size
   if (win->min_height && win->min_width) xdg_toplevel_set_min_size(win->xdg_toplevel, win->min_width, win->min_height);
-  // Set maximized
   if (win->maximized) xdg_toplevel_set_maximized(win->xdg_toplevel);
   else xdg_toplevel_unset_maximized(win->xdg_toplevel);
-  // Set fullscreen
   if (win->fullscreen) xdg_toplevel_set_fullscreen(win->xdg_toplevel, NULL);
   else xdg_toplevel_unset_fullscreen(win->xdg_toplevel);
+
+  win->xdg_surface_wait_for_configure = true;
+  wl_surface_commit(win->wl_surface);
+
+  // Get wl_callback for surface frame
+  win->wl_callback = wl_surface_frame(win->wl_surface);
+  if (!win->wl_callback) SWCL_PANIC("Failed to get wl_callback");
+  SWCL_LOG_DEBUG("Created wl_callback %p", win->wl_callback);
+  wl_callback_add_listener(win->wl_callback, &wl_callback_listener, win);
+  wl_display_roundtrip(app->wl_display);
 
   swcl_array_append(&app->windows, win);
   SWCL_LOG_DEBUG("Created window with id=%d, at %p", win->id, win);

@@ -1,5 +1,6 @@
 // Include implementation in ONE source file.
 // In other file just include swcl.h
+#define SWCL_ENABLE_DEBUG_LOGS
 #define SWCL_IMPLEMENTATION
 #include "swcl.h"
 
