@@ -6,7 +6,7 @@
 // This header-only library simplifies creating native Wayland window, receiving
 // mouse and keyboard events, natively drag and resize the window.
 
-// Linker flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGLESv2 -lEGL
+// Linker flags: -lwayland-client -lwayland-egl -lwayland-cursor -lGL -lEGL
 
 #ifndef SWCL_H
 #define SWCL_H
@@ -1135,8 +1135,8 @@ swcl_application_new(const char *app_id, void (*pointer_enter_cb)(SWCLWindow *wi
   SWCL_LOG_DEBUG("Initialized EGL version %d.%d", major, minor);
 
   // Bind OpenGL ES API to EGL
-  if (!eglBindAPI(EGL_OPENGL_ES_API)) SWCL_PANIC("Failed to bind OpenGLES to EGL");
-  SWCL_LOG_DEBUG("Binded OpenGLES to EGL");
+  if (!eglBindAPI(EGL_OPENGL_API)) SWCL_PANIC("Failed to bind OpenGL to EGL");
+  SWCL_LOG_DEBUG("Binded OpenGL to EGL");
 
   const EGLint config_attrs[] = {
       EGL_SURFACE_TYPE,
@@ -1150,7 +1150,7 @@ swcl_application_new(const char *app_id, void (*pointer_enter_cb)(SWCLWindow *wi
       EGL_ALPHA_SIZE,
       8,
       EGL_RENDERABLE_TYPE,
-      EGL_OPENGL_ES2_BIT,
+      EGL_OPENGL_BIT,
       EGL_SAMPLE_BUFFERS,
       1,
       EGL_SAMPLES,
