@@ -113,7 +113,7 @@ void swcl_application_quit(SWCLApplication *app);
 // This function takes care of creating native wayland window with stuff like
 // wl_surface, xdg_surface, xdg_toplevel and putting egl_window with OpenGL
 // context into it.
-SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, size_t width, size_t height, size_t min_width,
+SWCLWindow *swcl_window_new(SWCLApplication *app, const char *title, size_t width, size_t height, size_t min_width,
                             size_t min_height, bool maximized, bool fullscreen, void (*draw_func)(SWCLWindow *win));
 
 // Start window rendering.
@@ -857,7 +857,7 @@ static inline void swcl_array_free(SWCLArray array) {
 struct SWCLWindow {
   // Read-Only properties
   size_t id;
-  char *title;
+  const char *title;
   size_t width;
   size_t height;
   size_t min_width;
@@ -1062,18 +1062,18 @@ static void on_wl_registry_global(void *data, struct wl_registry *registry, uint
                                   uint32_t version) {
   SWCLApplication *app = (SWCLApplication *)data;
   if (strcmp(interface, wl_compositor_interface.name) == 0) {
-    app->wl_compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+    app->wl_compositor = (struct wl_compositor *)wl_registry_bind(registry, id, &wl_compositor_interface, 1);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-    app->xdg_wm_base = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+    app->xdg_wm_base = (struct xdg_wm_base *)wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
     xdg_wm_base_add_listener(app->xdg_wm_base, &xdg_wm_base_listener, NULL);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-    app->wl_seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
+    app->wl_seat = (struct wl_seat *)wl_registry_bind(registry, id, &wl_seat_interface, 1);
     wl_seat_add_listener(app->wl_seat, &wl_seat_listener, app);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-    app->wl_cursor_shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+    app->wl_cursor_shm = (struct wl_shm *)wl_registry_bind(registry, id, &wl_shm_interface, 1);
     SWCL_LOG_DEBUG("Registered %s version %d", interface, 1);
   }
 }
@@ -1291,7 +1291,7 @@ static void swcl__window_make_current(SWCLWindow *win) {
     SWCL_PANIC("Failed to make egl_surface current");
 }
 
-SWCLWindow *swcl_window_new(SWCLApplication *app, char *title, size_t width, size_t height, size_t min_width,
+SWCLWindow *swcl_window_new(SWCLApplication *app, const char *title, size_t width, size_t height, size_t min_width,
                             size_t min_height, bool maximized, bool fullscreen, void (*draw_func)(SWCLWindow *win)) {
 
   SWCLWindow *win = SWCL_ALLOC(SWCLWindow);
